@@ -15,7 +15,7 @@ Rails.application.routes.draw do
 
   # Gallery slugs sit at the root, so they must not swallow the reserved
   # prefixes above. Everything below is scoped by that constraint.
-  RESERVED = %w[users avo up rails assets active_storage].freeze
+  RESERVED = %w[users avo up rails assets active_storage favicon icon].freeze
 
   scope ":gallery_slug", constraints: { gallery_slug: /(?!(#{RESERVED.join("|")})\b)[a-z0-9][a-z0-9-]*/ } do
     get "/", to: "galleries#show", as: :gallery
