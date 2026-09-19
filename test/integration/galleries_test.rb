@@ -1,6 +1,18 @@
 require "test_helper"
 
 class GalleriesTest < ActionDispatch::IntegrationTest
+  test "the index shows a photo count, not a section count" do
+    gallery = create_gallery(sections: { "day-1" => "Day 1", "day-2" => "Day 2" })
+    gallery.sections.each_with_index { |s, i| 2.times { |n| create_photo(s, position: (i * 2) + n + 1) } }
+
+    assert_equal 4, gallery.reload.photos_count
+    assert_equal 2, gallery.sections_count
+
+    get root_path
+
+    assert_match "4 photos", response.body
+  end
+
   test "the index lists published galleries newest first" do
     old = create_gallery(slug: "2023")
     old.update!(held_on: Date.new(2023, 9, 1))

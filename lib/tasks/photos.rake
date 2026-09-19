@@ -395,9 +395,13 @@ module PhotoTasks
   end
 
   def gallery_photos(gallery)
-    Photo.joins(:section)
+    # Photo.with_images is the model's own eager load of blobs and variant
+    # records; verify checks nine of them per photo and would otherwise issue a
+    # lookup for each.
+    Photo.with_images
+         .joins(:section)
          .where(sections: { gallery_id: gallery.id })
-         .includes(:section, image_attachment: { blob: { variant_records: { image_attachment: :blob } } })
+         .includes(:section)
   end
 
   def photo_ids(gallery)

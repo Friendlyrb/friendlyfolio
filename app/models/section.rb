@@ -1,5 +1,5 @@
 class Section < ApplicationRecord
-  belongs_to :gallery, counter_cache: :photos_count, inverse_of: :sections
+  belongs_to :gallery, counter_cache: :sections_count, inverse_of: :sections
   has_many :photos, -> { order(:position) }, dependent: :destroy, inverse_of: :section
 
   validates :slug, presence: true,
@@ -22,10 +22,30 @@ class Section < ApplicationRecord
 
   # A deep link has to resolve to the page holding its photo. Rendering page one
   # for a photo on page two opens the wall with nothing to zoom.
+  #
+  # Counts rather than loading every id: at 342 photos the pluck-and-index
+  # version read the whole section on every single deep link.
   def page_for(photo)
-    index = photos.displayable.pluck(:id).index(photo.id)
-    return 1 if index.nil?
+    preceding = photos.displayable.where(position: ...photo.position).count
+    (preceding / PER_PAGE) + 1
+  end
 
-    (index / PER_PAGE) + 1
+  def photos_on(page)
+    photos.displayable.offset((page - 1) * PER_PAGE).limit(PER_PAGE)
+  end
+
+  # The lightbox manifest only ever holds one page, so stepping off either end
+  # needs a server-computed link into the adjacent page. Without these, next on
+  # the last tile navigates to the tile you are already looking at.
+  def first_photo_on(page)
+    return nil if page < 1 || page > page_count
+
+    photos_on(page).first
+  end
+
+  def last_photo_on(page)
+    return nil if page < 1 || page > page_count
+
+    photos_on(page).last
   end
 end

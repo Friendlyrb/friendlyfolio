@@ -10,6 +10,8 @@ export default class extends Controller {
   connect() {
     const data = JSON.parse(this.manifestTarget.textContent)
     this.photos = data.photos
+    this.nextPage = data.nextPage
+    this.prevPage = data.prevPage
     this.index = -1
     this.returnFocusTo = null
 
@@ -73,15 +75,22 @@ export default class extends Controller {
 
   step(delta) {
     const i = this.index + delta
-    // Past a page edge there is nothing in this manifest, so follow the real
-    // link and let the server render the adjacent page.
-    if (i < 0 || i >= this.photos.length) {
-      const edge = delta > 0 ? this.photos.length - 1 : 0
-      const href = this.photos[edge]?.url
-      if (href) window.location = href
+    if (i >= 0 && i < this.photos.length) {
+      this.show(i)
       return
     }
-    this.show(i)
+
+    // The manifest only holds this page. Past either edge, follow the
+    // server-computed link into the adjacent page -- navigating to this page's
+    // own first or last photo would just land on the tile already open.
+    const across = delta > 0 ? this.nextPage : this.prevPage
+    if (across) {
+      window.location = across
+      return
+    }
+
+    // No adjacent page: wrap, as the reference gallery does.
+    this.show(delta > 0 ? 0 : this.photos.length - 1)
   }
 
   key(event) {

@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
+  before_action :set_cache_headers
+
   helper_method :admin_signed_in?
 
   private

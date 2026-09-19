@@ -49,6 +49,8 @@
             alt: "#{section.title}. #{gallery.title}"
           }
         end,
-        open: open_photo&.id
+        open: open_photo&.id,
+        nextPage: (n = section.first_photo_on(page.to_i + 1)) && gallery_section_photo_path(gallery, section, n),
+        prevPage: (p = section.last_photo_on(page.to_i - 1)) && gallery_section_photo_path(gallery, section, p)
       }.to_json) %>
 </script>

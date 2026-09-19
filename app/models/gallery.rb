@@ -14,6 +14,11 @@ class Gallery < ApplicationRecord
 
   def published? = published_at.present?
 
+  # Summed from the sections rather than counter-cached on the gallery: photos
+  # belong to sections, so a counter_cache here would have counted sections.
+  # A gallery has a handful of sections, so this is one cheap query.
+  def photos_count = sections.sum(:photos_count)
+
   # Falls back to the first photo so a gallery whose cover was deleted still
   # renders instead of raising.
   def cover
