@@ -71,7 +71,7 @@ The photos are the conference's own record of itself. They should live somewhere
 
 - R16. Every photo offers a download of the original file — GPS-stripped per R29, otherwise untouched — with a meaningful filename.
 - R17. Every photo offers a "for sharing" download at 2048px as a JPEG — a format every operating system, messaging app and photo tool opens without thought.
-- R34. A download or derivative URL belonging to an unpublished gallery is unreachable for an anonymous visitor, not merely unlinked.
+- R34. Every route this app publishes for an unpublished gallery — page, photo, and download — is closed to an anonymous visitor, not merely unlinked. This does not extend to Active Storage URLs already handed out: the proxy controller verifies the signed blob id and knows nothing about publication, so a derivative URL captured while a gallery was public keeps working after it is unpublished. Unpublishing hides a gallery; it does not revoke bytes already given away. Treat publication as a one-way door, and do not rely on it to retract a photo.
 - R18. Every photo offers a share control that copies its deep link to the clipboard and confirms visibly that it copied.
 - R19. On a device with a native share sheet, the share control offers the sheet instead of a copy.
 - R20. Gallery, section, and single-photo URLs carry OpenGraph and Twitter card tags with a real title, a real description, and a representative image.

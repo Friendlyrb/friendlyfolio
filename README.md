@@ -70,6 +70,18 @@ readlink -f /home/deploy/<app>/current/storage
 
 Required environment: `SECRET_KEY_BASE`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
 
+### Publication is a one-way door
+
+Unpublishing a gallery closes every route this app serves for it. It does not
+revoke image URLs that are already out there: Active Storage's proxy controller
+verifies the signed blob id and knows nothing about publication, so a derivative
+URL someone captured while the gallery was public keeps working — and a CDN in
+front will happily keep serving it.
+
+There is a test asserting exactly this (`test/integration/unpublished_bytes_test.rb`),
+so the behaviour is recorded rather than assumed. If a photo genuinely has to be
+retracted, delete it; unpublishing is not enough.
+
 A job worker must be running. Rails only starts Solid Queue in Puma when
 `SOLID_QUEUE_IN_PUMA` is set; without a worker, variants for newly uploaded
 photos are never generated and the first visitor pays for them synchronously.
