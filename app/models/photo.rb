@@ -36,8 +36,13 @@ class Photo < ApplicationRecord
     VARIANTS.each { |name, transformations| attachable.variant name, **transformations }
   end
 
-  after_commit :extract_image_metadata, on: [ :create, :update ], if: -> { image.attached? && width.nil? }
-  after_commit :bake_variants_later, on: [ :create, :update ], if: -> { image.attached? && !derivatives_ready? }
+  # Keyed on the blob actually changing, not on the derived columns being blank.
+  # Guarding on `width.nil?` meant replacing a live photo's image in the admin
+  # skipped both the GPS check and the re-bake: the columns were already
+  # populated from the *old* file, so the new one kept the old dimensions, kept
+  # has_location_data false, and was never re-baked -- and the download handed
+  # out the new original with its coordinates intact.
+  after_commit :refresh_image_derivatives, on: [ :create, :update ], if: :image_changed?
 
   validates :position, presence: true
 
@@ -74,6 +79,21 @@ class Photo < ApplicationRecord
     ImageMetadata.apply(self)
   rescue StandardError => e
     Rails.logger.warn("Photo##{id} metadata extraction failed: #{e.message}")
+  end
+
+  def image_changed?
+    return false unless image.attached?
+
+    derived_from_blob_id != image.blob.id
+  end
+
+  # A replaced image is a different photo as far as everything downstream is
+  # concerned, so the old derivatives and the old verdict on its metadata are
+  # both stale until this finishes.
+  def refresh_image_derivatives
+    update_columns(derivatives_ready_at: nil, derived_from_blob_id: image.blob.id)
+    extract_image_metadata
+    bake_variants_later
   end
 
   # Builds every variant and marks the photo displayable. Called inline by the

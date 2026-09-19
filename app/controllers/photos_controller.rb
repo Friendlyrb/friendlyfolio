@@ -1,4 +1,5 @@
 class PhotosController < ApplicationController
+  before_action :set_cache_headers
   before_action :set_photo
 
   # The deep-linked photo view. Renders the gallery with the lightbox open, and

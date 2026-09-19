@@ -4,7 +4,13 @@
     <title><%= page_title %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
+    <%# Only for the admin. On public pages the session is skipped so the
+        response stays edge-cacheable, and a token a skipped session can never
+        validate is worse than no token. Any future public form needs this
+        reconsidered -- it would 422 silently. %>
+    <% if admin_signed_in? %>
+      <%= csrf_meta_tags %>
+    <% end %>
     <%= csp_meta_tag %>
 
     <%= yield :head %>

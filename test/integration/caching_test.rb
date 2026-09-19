@@ -45,4 +45,19 @@ class CachingTest < ActionDispatch::IntegrationTest
 
     assert_no_match(/Unpublished preview/, response.body)
   end
+
+  # Fastly passes on Set-Cookie and Cloudflare declines to cache it, so a
+  # public directive alongside a session cookie buys nothing at all.
+  test "a public gallery response sets no session cookie" do
+    get gallery_path(@gallery)
+
+    assert_nil response.headers["Set-Cookie"],
+               "Set-Cookie on a public page defeats the edge cache it is asking for"
+  end
+
+  test "the sign-in page is never publicly cacheable" do
+    get new_user_session_path
+
+    assert_no_match(/public/, response.headers["Cache-Control"].to_s)
+  end
 end

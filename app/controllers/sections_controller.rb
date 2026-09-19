@@ -1,4 +1,5 @@
 class SectionsController < ApplicationController
+  before_action :set_cache_headers
   before_action :set_section
 
   # Rendered inline for the first section and lazily via a Turbo frame for the

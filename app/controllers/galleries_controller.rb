@@ -1,4 +1,5 @@
 class GalleriesController < ApplicationController
+  before_action :set_cache_headers
   before_action :set_gallery, only: :show
 
   def index
@@ -6,7 +7,7 @@ class GalleriesController < ApplicationController
   end
 
   def show
-    @sections = @gallery.sections.includes(:photos)
+    @sections = @gallery.sections
   end
 
   private

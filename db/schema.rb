@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_19_131645) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_19_133548) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -57,6 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_19_131645) do
   create_table "photos", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "derivatives_ready_at"
+    t.integer "derived_from_blob_id"
     t.string "dominant_color"
     t.boolean "has_location_data", default: false, null: false
     t.integer "height"

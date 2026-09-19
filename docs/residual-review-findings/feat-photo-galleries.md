@@ -78,12 +78,12 @@ file is the durable record.
   its only callers are in tests, and `photos:preprocess` uses `update_columns`
   so it never fires the callback. But anyone who later wraps a threaded bulk
   operation in it gets no suppression and no warning.
-- **`csrf_meta_tags` commits a session on every page**, so public responses may
-  carry `Set-Cookie`, which makes Cloudflare and Fastly bypass the cache. If
-  that holds in production, the 5-minute HTML edge cache is doing nothing. The
-  long-lived image caching — which is the load-bearing part — is unaffected,
-  since those responses come from Active Storage and carry no session. Worth
-  measuring against the real CDN before optimising.
+- **Public pages skip the session**, so they carry no `Set-Cookie` and stay
+  edge-cacheable. Two consequences to know about: an anonymous flash would not
+  survive a redirect on a public page, and any future public form or
+  `button_to` would 422 silently, because `csrf_meta_tags` is now rendered for
+  signed-in admins only. Nothing public posts today. Both the concern and the
+  layout carry a comment saying so.
 
 ## Not reproduced
 

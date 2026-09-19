@@ -103,4 +103,24 @@ class PhotoTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "replacing a live photo's image re-checks it and re-bakes" do
+    photo = create_photo(@section, ready: false)
+    photo.bake_variants!
+    assert_predicate photo.reload, :derivatives_ready?
+
+    # A live photo already has width and derivatives, which is exactly the state
+    # where the old guards short-circuited and let a replacement through
+    # unchecked.
+    assert_enqueued_jobs 1, only: BakePhotoVariantsJob do
+      photo.image.attach(
+        io: File.open(Rails.root.join("test/fixtures/files/portrait.jpg")),
+        filename: "portrait.jpg", content_type: "image/jpeg"
+      )
+    end
+
+    photo.reload
+    assert_nil photo.derivatives_ready_at, "a replaced image must not stay marked ready"
+    assert_operator photo.height, :>, photo.width, "dimensions must come from the new file"
+  end
 end
