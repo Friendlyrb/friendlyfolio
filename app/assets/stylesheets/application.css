@@ -9,14 +9,19 @@
  * Consider organizing styles into separate files for maintainability.
  */
 
-@theme {
+/*
+  Plain custom properties, not `@theme`. Tailwind's input is
+  app/assets/tailwind/application.css -- this file is never fed to the
+  compiler, so an `@theme` block here reached the browser as an unknown
+  at-rule and was dropped. `var(--font-body)` had nothing to resolve to.
+*/
+:root {
+  --gap: 4px;
   --font-body: "Work Sans", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Sora", ui-sans-serif, system-ui, sans-serif;
   --color-brand: oklch(0.36 0.13 264);
   --color-accent: oklch(0.79 0.16 83);
 }
-
-:root { --gap: 4px; }
 
 body {
   font-family: var(--font-body);
