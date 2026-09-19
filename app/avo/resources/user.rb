@@ -1,17 +1,19 @@
 class Avo::Resources::User < Avo::BaseResource
-  self.icon = "tabler/outline/users"
-  # self.avatar = {
-  #   source: :avatar
-  # }
-  # self.includes = []
-  # self.attachments = []
-  # self.search = {
-  #   query: -> { query.ransack(id_eq: q, m: "or").result(distinct: false) }
-  # }
+  self.title = :email
+  self.icon = "tabler/outline/user-shield"
+
+  # Devise :validatable demands a password on create. Without this, saving any
+  # other change to an existing admin would fail for want of one.
+  self.devise_password_optional = true
 
   def fields
     field :id, as: :id
-    # field :avatar, as: :avatar
-    field :email, as: :text
+    field :email, as: :text, required: true, link_to_record: true
+
+    # The single admin is seeded from credentials, not created here. The field
+    # exists so that admin can change their own password; there is no reset
+    # flow, because :recoverable is deliberately off and no mail is configured.
+    field :password, as: :password, only_on: :forms,
+      help: "Leave blank to keep the current password."
   end
 end

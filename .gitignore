@@ -42,3 +42,6 @@
 !/storage/files/.keep
 /storage/db/*
 !/storage/db/.keep
+
+# Playwright MCP scratch output
+/.playwright-mcp/

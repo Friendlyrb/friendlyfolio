@@ -246,7 +246,7 @@ module PhotoTasks
   # missing variant on demand, so a verifier built on any of them silently
   # repairs what it was asked to report and can never fail.
   def variant_state(blob, transformations)
-    record = variant_record(blob, digest_for(transformations))
+    record = variant_record(blob, variation_digest(blob, transformations))
     return :missing if record.nil?
     return :stale unless record.image.attached?
 
@@ -262,8 +262,15 @@ module PhotoTasks
     end
   end
 
-  def digest_for(transformations)
-    ActiveStorage::Variation.wrap(transformations).digest
+  # The digest is not computable from the declared transformations alone:
+  # Blob#variant reverse-merges a default format derived from the blob itself,
+  # which reorders the hash, and the digest is a Marshal dump. So build the
+  # variation the way Active Storage builds it and throw the variant object
+  # away. Constructing one is inert -- #processed, #url, #key and #download are
+  # the methods that generate a missing variant -- and this is the only line in
+  # the file that goes anywhere near a variant object outside the bake.
+  def variation_digest(blob, transformations)
+    blob.variant(transformations).variation.digest
   end
 
   # --- internals ------------------------------------------------------------
@@ -309,7 +316,7 @@ module PhotoTasks
         # The row claims the variant exists but its file does not -- a half
         # copied storage tree, or a purged directory. `.processed` trusts the
         # row and would skip it, so drop the row first.
-        variant_record(blob, digest_for(transformations))&.destroy
+        variant_record(blob, variation_digest(blob, transformations))&.destroy
         photo.image.variant(name).processed
         baked += 1
       else
@@ -401,12 +408,21 @@ module PhotoTasks
   end
 
   def without_active_storage_jobs
-    previous = SUPPRESSED_JOBS.to_h { |name| [ name, name.constantize.queue_adapter ] }
-    dropped = DroppedQueue.new
-    SUPPRESSED_JOBS.each { |name| name.constantize.queue_adapter = dropped }
+    install_enqueue_guard
+    previous = Thread.current[SUPPRESSION_KEY]
+    Thread.current[SUPPRESSION_KEY] = true
     yield
   ensure
-    previous&.each { |name, adapter| name.constantize.queue_adapter = adapter }
+    Thread.current[SUPPRESSION_KEY] = previous
+  end
+
+  def install_enqueue_guard
+    @enqueue_guard_installed ||= begin
+      SUPPRESSED_JOBS.each do |name|
+        name.constantize.before_enqueue { throw :abort if Thread.current[PhotoTasks::SUPPRESSION_KEY] }
+      end
+      true
+    end
   end
 
   def find_gallery!(slug)
