@@ -23,9 +23,11 @@ Avo.configure do |config|
   # request is not routed to Avo at all.
   config.current_user_method = :current_user
 
-  # Names the "user" segment of the sign-out helper, so the sidebar's sign-out
-  # item resolves to Devise's destroy_user_session_path.
-  config.current_user_resource_name = :current_user
+  # Names only the middle segment of destroy_<name>_session_path. Devise's
+  # helper for this app's :users scope is destroy_user_session_path, so the
+  # value is `user` -- `current_user` would build a helper that does not exist
+  # and silently hide the sidebar's sign-out item.
+  config.current_user_resource_name = :user
   # config.authenticate_with do
   # end
 

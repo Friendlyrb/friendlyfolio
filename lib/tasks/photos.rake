@@ -54,18 +54,17 @@ module PhotoTasks
   # AnalyzeJob the moment an attachment commits. Nine variants across 1,916
   # photos is ~17,250 jobs pushed into SQLite while the ingest is still
   # inserting (KTD9). The bulk bake is photos:preprocess, which calls
-  # `.processed` directly, so ingest drops the transform jobs rather than
-  # queueing work it is about to do itself, and analyzes inline instead of
-  # leaving 1,916 analyze jobs in a queue database that gets rsynced to the box
-  # and dequeued there.
-  class DroppedQueue
-    def enqueue(_job) = nil
-    def enqueue_at(_job, _timestamp) = nil
-    def enqueue_all(jobs) = jobs.size
-    def enqueue_after_transaction_commit? = false
-  end
-
+  # `.processed` directly, so ingest refuses those enqueues rather than queueing
+  # work it is about to do itself, and analyzes inline instead of leaving 1,916
+  # analyze jobs in a queue database that gets rsynced to the box and dequeued
+  # there.
+  #
+  # The halt is a before_enqueue callback rather than a swapped queue adapter,
+  # because a swapped adapter is not honoured under ActiveJob::TestHelper -- its
+  # test adapter wins over any assignment -- and a guard that silently stops
+  # working in the test suite is exactly the guard this one has to be.
   SUPPRESSED_JOBS = [ "ActiveStorage::TransformJob", "ActiveStorage::AnalyzeJob" ].freeze
+  SUPPRESSION_KEY = :photo_tasks_suppress_active_storage_jobs
 
   module_function
 
