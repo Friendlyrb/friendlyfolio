@@ -4,7 +4,7 @@ import { Controller } from "@hotwired/stimulus"
 // <dialog> already provides -- focus trapping, Escape, the backdrop, aria-modal
 // -- is deliberately not reimplemented here.
 export default class extends Controller {
-  static targets = ["dialog", "image", "counter", "download", "share2048", "tile", "manifest"]
+  static targets = ["dialog", "image", "avif", "counter", "download", "share2048", "tile", "manifest"]
   static values = { sectionPath: String }
 
   connect() {
@@ -52,6 +52,9 @@ export default class extends Controller {
     if (!photo) return
 
     this.index = i
+    // Set the AVIF source before the img src, so the browser picks the
+    // smaller candidate rather than starting the WebP fetch first.
+    this.avifTarget.srcset = photo.avif
     this.imageTarget.src = photo.webp
     this.imageTarget.alt = photo.alt
     this.downloadTarget.href = photo.download

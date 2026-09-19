@@ -1,6 +1,6 @@
-<%= turbo_frame_tag dom_id(section) do %>
+<%= turbo_frame_tag dom_id(section), data: { turbo_action: "advance" } do %>
 <div data-controller="lightbox"
-     data-lightbox-section-path-value="<%= gallery_section_path(gallery, section) %>">
+     data-lightbox-section-path-value="<%= request.path %>">
   <% photos = section.photos.displayable.with_images.limit(Section::PER_PAGE) %>
   <%= render "sections/wall", photos: photos, gallery: gallery, section: section %>
   <% if section.paginated? %>

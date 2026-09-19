@@ -9,7 +9,8 @@ module ApplicationHelper
   # reservation, every section that loads shoves the page down -- the exact
   # layout shift the wall is built to avoid.
   def reserved_height(section)
-    rows = (section.photos_count / 4.0).ceil
+    rendered = [ section.photos_count, Section::PER_PAGE ].min
+    rows = (rendered / 4.0).ceil
     [ rows * 244, 200 ].max
   end
 

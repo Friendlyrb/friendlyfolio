@@ -22,6 +22,8 @@ class Gallery < ApplicationRecord
   # Falls back to the first photo so a gallery whose cover was deleted still
   # renders instead of raising.
   def cover
-    cover_photo || photos.displayable.first
+    return @cover if defined?(@cover)
+
+    @cover = cover_photo || photos.displayable.first
   end
 end

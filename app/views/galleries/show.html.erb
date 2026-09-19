@@ -1,4 +1,10 @@
 <% content_for :title, @gallery.title %>
+<% if @gallery.cover %>
+  <% content_for :og_image, photo_variant_url(@gallery.cover, :share_jpeg) %>
+<% end %>
+<% if @gallery.description.present? %>
+  <% content_for :og_description, @gallery.description %>
+<% end %>
 
 <% if admin_signed_in? && !@gallery.published? %>
   <%#

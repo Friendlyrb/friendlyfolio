@@ -9,7 +9,12 @@
         aria-label="Photo viewer"
         data-action="click->lightbox#backdropClose keydown->lightbox#key close->lightbox#closed">
   <figure class="lightbox__figure">
-    <img data-lightbox-target="image" alt="" decoding="async" fetchpriority="high">
+    <%# Both sources are swapped by the controller. Without the <source>, the
+        AVIF tier is encoded for every photo and then never delivered. %>
+    <picture>
+      <source type="image/avif" data-lightbox-target="avif">
+      <img data-lightbox-target="image" alt="" decoding="async" fetchpriority="high">
+    </picture>
   </figure>
 
   <div class="lightbox__bar">

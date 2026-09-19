@@ -1,4 +1,15 @@
 <% content_for :title, "#{@section.title} — #{@gallery.title}" %>
+<% if @photo %>
+  <%# The JPEG tier deliberately: unfurlers on Slack, LinkedIn and X do not
+      decode AVIF, so an AVIF og:image renders as nothing. %>
+  <% content_for :og_image, photo_variant_url(@photo, :share_jpeg) %>
+  <% content_for :og_title, "#{@section.title} — #{@gallery.title}" %>
+<% elsif (cover = @section.photos.displayable.first) %>
+  <% content_for :og_image, photo_variant_url(cover, :share_jpeg) %>
+<% end %>
+<% if @gallery.description.present? %>
+  <% content_for :og_description, @gallery.description %>
+<% end %>
 
 <%#
   Wrapped in a matching turbo-frame because the gallery page loads every

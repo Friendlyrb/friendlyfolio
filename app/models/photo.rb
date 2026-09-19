@@ -52,13 +52,12 @@ class Photo < ApplicationRecord
   # inside the request.
   scope :displayable, -> { where.not(derivatives_ready_at: nil) }
 
-  # Active Storage tracks variant records, so without this every variant URL on
-  # the page costs a lookup -- several hundred queries on a full wall.
-  # with_all_variant_records is a scope on the attachment, not on the model, so
-  # the eager load has to be spelled out from this side.
-  scope :with_images, -> {
-    includes(image_attachment: { blob: { variant_records: { image_attachment: :blob } } })
-  }
+  # Without this every tile queries for its attachment and blob -- several
+  # hundred queries on a full wall. Variant records are deliberately NOT eager
+  # loaded: a proxy-mode URL is built from the blob's signed id, the variation
+  # key and the filename, so it never reads them, and loading them would add
+  # thousands of unused objects per page.
+  scope :with_images, -> { includes(image_attachment: :blob) }
 
   def aspect_ratio
     return 1.5 if width.to_i.zero? || height.to_i.zero?

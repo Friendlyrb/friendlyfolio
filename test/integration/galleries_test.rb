@@ -83,4 +83,35 @@ class GalleriesTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
   end
+
+  test "a gallery page carries an og:image so shared links unfurl with a picture" do
+    gallery = create_gallery(slug: "2022")
+    create_photo(gallery.sections.first)
+
+    get gallery_path(gallery)
+
+    og = response.body[/property="og:image" content="([^"]+)"/, 1]
+    assert og, "og:image must be set, or every shared link unfurls blank"
+    assert_match %r{\Ahttp}, og, "og:image must be absolute for an unfurler"
+  end
+
+  test "a photo deep link unfurls as that photo, not the gallery cover" do
+    gallery = create_gallery(slug: "2021")
+    section = gallery.sections.first
+    create_photo(section, position: 1)
+    target = create_photo(section, position: 2, fixture: "portrait.jpg")
+
+    get gallery_section_photo_path(gallery, section, target)
+
+    og = response.body[/property="og:image" content="([^"]+)"/, 1]
+    assert og
+
+    # The variation is base64 in the path, so decode it rather than matching
+    # the variant's Ruby name against an encoded string.
+    variation = og.split("/")[-2]
+    decoded = Base64.urlsafe_decode64(variation.split("--").first)
+    assert_match(/"format":"jpeg"/, decoded,
+                 "should unfurl the JPEG tier, which unfurlers can decode")
+    assert_match(/portrait/, og, "should unfurl the linked photo, not the gallery cover")
+  end
 end

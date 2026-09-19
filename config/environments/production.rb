@@ -30,6 +30,11 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
+  # Public pages are edge-cacheable and og:url echoes the request host, so an
+  # unconstrained Host lets a forged one be cached under the real host's key.
+  config.hosts << ENV["APP_HOST"] if ENV["APP_HOST"].present?
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 

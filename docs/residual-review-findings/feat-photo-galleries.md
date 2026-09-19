@@ -85,6 +85,17 @@ file is the durable record.
   signed-in admins only. Nothing public posts today. Both the concern and the
   layout carry a comment saying so.
 
+## Left unfixed from the code review
+
+Small, and recorded rather than silently dropped:
+
+- **`config/routes.rb` RESERVED constraint** uses `\b`, which matches before a
+  hyphen — so a gallery slug like `rails-conf`, `users-2025` or `up-north`
+  would 404. The three real slugs are years, so this bites nobody today.
+- **The `large` key in the lightbox manifest** is still emitted and unread. The
+  `avif` key now is read (the lightbox serves a `<picture>`), but nothing
+  swaps in the 2048px tier on large viewports yet.
+
 ## Not reproduced
 
 `avo-advanced_file_uploads`, the paid add-on the plan named as covering bulk

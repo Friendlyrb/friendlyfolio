@@ -3,7 +3,7 @@ class GalleriesController < ApplicationController
   before_action :set_gallery, only: :show
 
   def index
-    @galleries = visible_galleries.newest_first.includes(:sections, cover_photo: { image_attachment: { blob: :variant_records } })
+    @galleries = visible_galleries.newest_first.includes(cover_photo: { image_attachment: :blob })
   end
 
   def show

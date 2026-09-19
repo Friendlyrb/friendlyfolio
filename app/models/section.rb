@@ -1,6 +1,6 @@
 class Section < ApplicationRecord
   belongs_to :gallery, counter_cache: :sections_count, inverse_of: :sections
-  has_many :photos, -> { order(:position) }, dependent: :destroy, inverse_of: :section
+  has_many :photos, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :section
 
   validates :slug, presence: true,
                    uniqueness: { scope: :gallery_id },
@@ -26,7 +26,9 @@ class Section < ApplicationRecord
   # Counts rather than loading every id: at 342 photos the pluck-and-index
   # version read the whole section on every single deep link.
   def page_for(photo)
-    preceding = photos.displayable.where(position: ...photo.position).count
+    preceding = photos.displayable
+                      .where("position < :pos OR (position = :pos AND id < :id)", pos: photo.position, id: photo.id)
+                      .count
     (preceding / PER_PAGE) + 1
   end
 

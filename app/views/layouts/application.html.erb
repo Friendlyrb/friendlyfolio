@@ -22,8 +22,10 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="<%= request.original_url %>">
     <% if content_for?(:og_image) %>
-      <meta property="og:image" content="<%= content_for(:og_image) %>">
-      <meta name="twitter:image" content="<%= content_for(:og_image) %>">
+      <%# Absolute: an unfurler has no base to resolve a path against. %>
+      <% og_image = URI.join(request.base_url, content_for(:og_image)).to_s %>
+      <meta property="og:image" content="<%= og_image %>">
+      <meta name="twitter:image" content="<%= og_image %>">
     <% end %>
     <meta name="twitter:card" content="summary_large_image">
 

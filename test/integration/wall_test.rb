@@ -22,7 +22,9 @@ class WallTest < ActionDispatch::IntegrationTest
 
     get gallery_section_path(@gallery, @section)
 
-    sources = response.body.scan(/<source[^>]*>/)
+    # Only sources offering a candidate set need sizes. The lightbox's source
+    # carries a single image and is populated by JavaScript.
+    sources = response.body.scan(/<source[^>]*>/).select { |s| s.include?("srcset=") }
     assert_predicate sources, :any?
     sources.each { |s| assert_match(/sizes=/, s, "a <source> without sizes silently defaults to 100vw") }
   end
@@ -94,7 +96,9 @@ class WallTest < ActionDispatch::IntegrationTest
 
     get gallery_path(gallery)
 
-    assert_match(/<turbo-frame id="#{Regexp.escape(ActionView::RecordIdentifier.dom_id(gallery.sections.first))}"/,
-                 response.body)
+    expected = ActionView::RecordIdentifier.dom_id(gallery.sections.first)
+    tag = response.body[/<turbo-frame[^>]*>/]
+    assert tag, "the inline section should still render inside a frame"
+    assert_equal expected, tag[/id="([^"]+)"/, 1]
   end
 end
