@@ -20,7 +20,13 @@
 #
 #   3. Bake every derivative -- locally, not on the box (KTD15):
 #
-#        PHOTOS_WORKERS=4 bin/rails "photos:preprocess[2025]"
+#        bin/rails "photos:preprocess[2025]"
+#
+#      Measured on a 10-core M-series laptop against 6000x4000 sources: 12.3s
+#      per photo for all nine variants, so the 1,916-photo corpus is roughly
+#      6.5 hours. Start it and leave it; it is restartable. Two thirds of that
+#      is AVIF encoding and large_avif alone is 6s of it, so the variant ladder
+#      (KTD8) is the lever if that is too slow.
 #
 #   4. Check before publishing. This is the gate:
 #
@@ -63,7 +69,14 @@ module PhotoTasks
   # because a swapped adapter is not honoured under ActiveJob::TestHelper -- its
   # test adapter wins over any assignment -- and a guard that silently stops
   # working in the test suite is exactly the guard this one has to be.
-  SUPPRESSED_JOBS = [ "ActiveStorage::TransformJob", "ActiveStorage::AnalyzeJob" ].freeze
+  # BakePhotoVariantsJob is ours: the model enqueues one per attach so a single
+  # admin upload gets baked in the background. The bulk path bakes inline, so it
+  # suppresses that too rather than queueing 1,916 jobs it is about to do itself.
+  SUPPRESSED_JOBS = [
+    "ActiveStorage::TransformJob",
+    "ActiveStorage::AnalyzeJob",
+    "BakePhotoVariantsJob"
+  ].freeze
   SUPPRESSION_KEY = :photo_tasks_suppress_active_storage_jobs
 
   module_function
@@ -316,11 +329,13 @@ module PhotoTasks
         # The row claims the variant exists but its file does not -- a half
         # copied storage tree, or a purged directory. `.processed` trusts the
         # row and would skip it, so drop the row first.
-        variant_record(blob, variation_digest(blob, transformations))&.destroy
-        photo.image.variant(name).processed
+        retrying_writes(label) do
+          variant_record(blob, variation_digest(blob, transformations))&.destroy
+          photo.image.variant(name).processed
+        end
         baked += 1
       else
-        photo.image.variant(name).processed
+        retrying_writes(label) { photo.image.variant(name).processed }
         baked += 1
       end
     end
@@ -328,13 +343,36 @@ module PhotoTasks
     # Re-read rather than trusting the loop: this is what decides whether the
     # photo becomes visible.
     complete = Photo::VARIANTS.all? { |_name, transformations| variant_state(blob, transformations) == :ok }
-    if complete && photo.derivatives_ready_at.nil?
-      photo.update_columns(derivatives_ready_at: Time.current, updated_at: Time.current)
-    elsif !complete && photo.derivatives_ready_at.present?
-      photo.update_columns(derivatives_ready_at: nil, updated_at: Time.current)
+    retrying_writes(label) do
+      if complete && photo.derivatives_ready_at.nil?
+        photo.update_columns(derivatives_ready_at: Time.current, updated_at: Time.current)
+      elsif !complete && photo.derivatives_ready_at.present?
+        photo.update_columns(derivatives_ready_at: nil, updated_at: Time.current)
+      end
     end
 
     { baked: baked, present: present, ready: complete, label: label }
+  end
+
+  # Every worker writes three rows per variant -- variant record, blob,
+  # attachment -- and SQLite takes one writer at a time. A deferred transaction
+  # that has already read and then tries to upgrade gets SQLITE_BUSY straight
+  # away, without the busy handler waiting at all, so raising the pool size
+  # without this loses whole photos. Measured: 4 workers dropped 3 of 4 photos
+  # before this existed. Retrying costs a repeated transform, which is why the
+  # pool stays small rather than leaning on the retries.
+  def retrying_writes(label, attempts: 5)
+    tries = 0
+    begin
+      yield
+    rescue ActiveRecord::StatementTimeout, ActiveRecord::LockWaitTimeout, ActiveRecord::Deadlocked => e
+      tries += 1
+      raise if tries >= attempts
+
+      sleep(0.1 * (2**tries) * (0.5 + rand))
+      say "  retrying #{label} after #{e.class} (attempt #{tries + 1} of #{attempts})"
+      retry
+    end
   end
 
   def photo_problems(photo)
@@ -393,11 +431,14 @@ module PhotoTasks
   end
 
   def worker_count
-    requested = ENV.fetch("PHOTOS_WORKERS", "2").to_i
     # KTD15 says pick one level of parallelism, not both. This picks libvips:
-    # VIPS_CONCURRENCY is left alone so each resize threads internally, and the
-    # Ruby pool stays small. If you set VIPS_CONCURRENCY=1, raise PHOTOS_WORKERS
-    # to the core count instead.
+    # VIPS_CONCURRENCY is left alone so each resize threads across the cores,
+    # and the Ruby pool stays at 2. Measured per photo on 6000x4000 sources,
+    # 10 cores: 1 worker 14.6s, 2 workers 12.3s, 4 workers 13.7s, and
+    # 4 workers with VIPS_CONCURRENCY=1 13.9s. Past two workers the pool is
+    # fighting libvips for the same cores and fighting itself for SQLite's
+    # single writer.
+    requested = ENV.fetch("PHOTOS_WORKERS", "2").to_i
     requested = 2 if requested < 1
     pool = ActiveRecord::Base.connection_pool.size
     if requested >= pool

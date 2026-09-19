@@ -27,7 +27,7 @@ class Avo::Resources::Photo < Avo::BaseResource
 
     field :image, as: :file, accept: "image/*", hide_on: :index,
       help: "One file per photo. Avo Community's file input takes a single file at a time -- " \
-            "the 1,900-photo import is <code>bin/rails photos:import</code>, not this form."
+            "the 1,900-photo import is <code>photos:ingest</code>, not this form."
 
     field :position, as: :number,
       help: "Photos render in ascending order within their section."
@@ -37,14 +37,21 @@ class Avo::Resources::Photo < Avo::BaseResource
     # Everything below is derived from the image at attach time. It is shown so
     # an admin can see what the pipeline produced, and it is absent from the
     # form because an editable input would imply these can be set by hand.
+    # label_help rather than help: help only renders on a form, and none of
+    # these appear on one.
     field :derivatives_ready_at, as: :date_time, name: "Derivatives ready at", only_on: :display,
-      help: "Empty means the nine variants are still baking. Until it is set, the photo is withheld " \
-            "from every public page, so a visitor never triggers variant generation mid-request."
+      label_help: "Empty means the nine variants are still baking. Until it is set, the photo is " \
+                  "withheld from every public page, so a visitor never triggers variant generation " \
+                  "mid-request."
+    field :has_location_data, as: :boolean, name: "Carries GPS EXIF", only_on: :display,
+      label_help: "A photo that still has GPS in its EXIF refuses to bake, because the download " \
+                  "button hands out the original verbatim. Strip it at the source: " \
+                  "<code>exiftool -gps:all= -overwrite_original &lt;dir&gt;</code>."
     field :width, as: :number, only_on: :display
     field :height, as: :number, only_on: :display
     field :dominant_color, as: :text, name: "Dominant color", only_on: :display, copyable: true,
-      help: "Fills the tile before the image arrives."
+      label_help: "Fills the tile before the image arrives."
     field :source_digest, as: :text, name: "Source digest", only_on: :display,
-      help: "Deduplicates re-runs of the import task within a section."
+      label_help: "Deduplicates re-runs of the import task within a section."
   end
 end

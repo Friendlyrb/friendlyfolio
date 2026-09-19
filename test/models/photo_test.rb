@@ -62,4 +62,45 @@ class PhotoTest < ActiveSupport::TestCase
       assert_empty image.get_fields.grep(/exif|gps/i)
     end
   end
+
+  test "baking refuses a photo whose original still carries GPS" do
+    photo = create_photo(@section, ready: false)
+    photo.update_columns(has_location_data: true)
+
+    error = assert_raises(Photo::LocationDataPresent) { photo.bake_variants! }
+
+    assert_match(/exiftool/, error.message)
+    assert_nil photo.reload.derivatives_ready_at
+  end
+
+  test "baking a clean photo generates every variant and marks it displayable" do
+    photo = create_photo(@section, ready: false)
+
+    photo.bake_variants!
+
+    assert_predicate photo.reload, :derivatives_ready?
+    assert_includes Photo.displayable, photo
+  end
+
+  test "attaching enqueues one bake job, not one per variant" do
+    assert_enqueued_jobs 1, only: BakePhotoVariantsJob do
+      photo = @section.photos.create!(position: 99)
+      photo.image.attach(
+        io: File.open(Rails.root.join("test/fixtures/files/landscape.jpg")),
+        filename: "landscape.jpg", content_type: "image/jpeg"
+      )
+    end
+  end
+
+  test "without_auto_bake suppresses the job so a bulk import can bake inline" do
+    assert_no_enqueued_jobs only: BakePhotoVariantsJob do
+      Photo.without_auto_bake do
+        photo = @section.photos.create!(position: 98)
+        photo.image.attach(
+          io: File.open(Rails.root.join("test/fixtures/files/landscape.jpg")),
+          filename: "landscape.jpg", content_type: "image/jpeg"
+        )
+      end
+    end
+  end
 end

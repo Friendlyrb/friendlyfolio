@@ -168,6 +168,7 @@ class PhotosTaskTest < ActiveSupport::TestCase
       run = run_task("photos:ingest", "2025", "day-1", dir)
     end
 
+
     refute run.aborted?, run.output
     # 5 photos x 9 preprocessed variants would be 45 TransformJobs plus 5
     # AnalyzeJobs in SQLite -- KTD9's failure mode at 1/383rd scale.

@@ -1,4 +1,9 @@
 class Photo < ApplicationRecord
+  # The download button hands out the original, so a photo carrying GPS must
+  # never become displayable -- stripping derivatives alone would still leak an
+  # attendee's location to anyone who downloads it.
+  class LocationDataPresent < StandardError; end
+
   belongs_to :section, counter_cache: :photos_count, inverse_of: :photos
 
   # Wall tiles, then lightbox, then the two sizes that leave the browser.
@@ -20,16 +25,19 @@ class Photo < ApplicationRecord
     share_jpeg: { resize_to_limit: [ 2048, 2048 ], format: :jpeg, saver: { quality: 80, strip: true } }
   }.freeze
 
+  # Deliberately NOT declared `preprocessed: true`. That flag is a property of
+  # the attachment declaration, not of the call site: Active Storage runs
+  # transform_variants_later in an after_create_commit on every attach, so it
+  # would enqueue nine jobs per photo -- roughly 17,250 for the full import --
+  # with no way for the bulk path to opt out. Baking is driven explicitly
+  # instead, by BakePhotoVariantsJob for single uploads and inline by
+  # lib/tasks/photos.rake for the import.
   has_one_attached :image do |attachable|
-    VARIANTS.each do |name, transformations|
-      # preprocessed handles the ongoing case -- an admin adding a photo or two.
-      # The bulk import does NOT rely on this: baking 1,916 photos this way
-      # would enqueue ~17,250 jobs into SQLite. See lib/tasks/photos.rake.
-      attachable.variant name, **transformations, preprocessed: true
-    end
+    VARIANTS.each { |name, transformations| attachable.variant name, **transformations }
   end
 
   after_commit :extract_image_metadata, on: [ :create, :update ], if: -> { image.attached? && width.nil? }
+  after_commit :bake_variants_later, on: [ :create, :update ], if: -> { image.attached? && !derivatives_ready? }
 
   validates :position, presence: true
 
@@ -66,5 +74,36 @@ class Photo < ApplicationRecord
     ImageMetadata.apply(self)
   rescue StandardError => e
     Rails.logger.warn("Photo##{id} metadata extraction failed: #{e.message}")
+  end
+
+  # Builds every variant and marks the photo displayable. Called inline by the
+  # import task and in the background for a single admin upload.
+  def bake_variants!
+    if has_location_data?
+      raise LocationDataPresent,
+            "#{download_filename} still carries GPS EXIF. Strip it from the source first: " \
+            "exiftool -gps:all= -overwrite_original <dir>"
+    end
+
+    VARIANTS.each_key { |name| image.variant(name).processed }
+    update!(derivatives_ready_at: Time.current)
+  end
+
+  # Suppresses the automatic bake so a bulk import can do the work inline
+  # rather than filling the queue with one job per photo.
+  def self.without_auto_bake
+    previous = Thread.current[:photo_skip_auto_bake]
+    Thread.current[:photo_skip_auto_bake] = true
+    yield
+  ensure
+    Thread.current[:photo_skip_auto_bake] = previous
+  end
+
+  def self.auto_bake? = !Thread.current[:photo_skip_auto_bake]
+
+  private
+
+  def bake_variants_later
+    BakePhotoVariantsJob.perform_later(self) if self.class.auto_bake?
   end
 end

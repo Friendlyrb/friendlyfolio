@@ -38,10 +38,16 @@
 !/app/assets/builds/.keep
 
 # Active Storage files and SQLite databases live here; both are gitignored.
-/storage/files/*
-!/storage/files/.keep
+# /storage/* above ignores these directories outright, and git cannot
+# re-include a file inside an ignored directory -- the directory itself has to
+# be un-ignored first. Without this the .keep files are never committed, the
+# directories do not exist on a fresh checkout, and the first db:prepare fails.
+!/storage/db/
 /storage/db/*
 !/storage/db/.keep
+!/storage/files/
+/storage/files/*
+!/storage/files/.keep
 
 # Playwright MCP scratch output
 /.playwright-mcp/

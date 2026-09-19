@@ -87,23 +87,19 @@ class AdminAccessTest < ActionDispatch::IntegrationTest
 
   test "derived photo columns are shown but never offered as form inputs" do
     section = @gallery.sections.create!(slug: "day-1", title: "Day 1", position: 1)
-    photo = section.photos.create!(position: 1)
-    photo.image.attach(
-      io: file_fixture("landscape.jpg").open,
-      filename: "landscape.jpg",
-      content_type: "image/jpeg"
-    )
-    photo.reload
+    photo = create_photo(section, ready: false)
 
     sign_in @admin
 
     get "/avo/resources/photos/#{photo.id}"
     assert_response :success
     assert_match photo.width.to_s, response.body
+    assert_match "Carries GPS EXIF", response.body
+    assert_match "withheld from every public page", response.body
 
     get "/avo/resources/photos/#{photo.id}/edit"
     assert_response :success
-    %w[width height dominant_color derivatives_ready_at source_digest].each do |derived|
+    %w[width height dominant_color derivatives_ready_at source_digest has_location_data].each do |derived|
       assert_no_match(/name="photo\[#{derived}\]"/, response.body,
         "#{derived} is derived from the image; an editable input would claim otherwise")
     end
@@ -116,13 +112,7 @@ class AdminAccessTest < ActionDispatch::IntegrationTest
   # thumbnail, and only once the derivatives exist.
   test "the photo index links thumbnails rather than originals" do
     section = @gallery.sections.create!(slug: "day-1", title: "Day 1", position: 1)
-    photo = section.photos.create!(position: 1)
-    photo.image.attach(
-      io: file_fixture("landscape.jpg").open,
-      filename: "landscape.jpg",
-      content_type: "image/jpeg"
-    )
-    photo.update!(derivatives_ready_at: Time.current)
+    photo = create_photo(section)
 
     sign_in @admin
     get "/avo/resources/photos"
@@ -131,5 +121,54 @@ class AdminAccessTest < ActionDispatch::IntegrationTest
     assert_match "/representations/", response.body
     assert_no_match(/src="[^"]*\/rails\/active_storage\/blobs\//, response.body,
       "the index should not point an <img> at a multi-megabyte original")
+  end
+
+  # A section slug is only unique within its gallery, and Section#to_param is
+  # the slug, so Avo's links are ambiguous on their own. Reached from a
+  # gallery's sections panel they carry that gallery, which resolves it.
+  test "a section slug resolves inside the gallery it was reached from" do
+    other = Gallery.create!(slug: "friendlyrb-2023", title: "FriendlyRB 2023", held_on: Date.new(2023, 5, 16))
+    @gallery.sections.create!(slug: "day-1", title: "Day 1 in 2024", position: 1)
+    other.sections.create!(slug: "day-1", title: "Day 1 in 2023", position: 1)
+
+    sign_in @admin
+
+    get "/avo/resources/sections/day-1",
+      params: { via_resource_class: "Avo::Resources::Gallery", via_record_id: other.slug }
+    assert_response :success
+    assert_match "Day 1 in 2023", response.body
+    assert_no_match "Day 1 in 2024", response.body
+
+    get "/avo/resources/sections/day-1",
+      params: { via_resource_class: "Avo::Resources::Gallery", via_record_id: @gallery.slug }
+    assert_response :success
+    assert_match "Day 1 in 2024", response.body
+    assert_no_match "Day 1 in 2023", response.body
+  end
+
+  # Cheap insurance against a field option that only blows up on one view.
+  test "every admin page an editor can reach renders" do
+    section = @gallery.sections.create!(slug: "day-1", title: "Day 1", position: 1)
+    photo = create_photo(section, fixture: "portrait.jpg")
+    @gallery.update!(cover_photo: photo)
+
+    sign_in @admin
+
+    [
+      "/avo",
+      "/avo/resources/galleries", "/avo/resources/galleries/new",
+      "/avo/resources/galleries/#{@gallery.slug}", "/avo/resources/galleries/#{@gallery.slug}/edit",
+      "/avo/resources/galleries/#{@gallery.slug}/sections",
+      "/avo/resources/sections", "/avo/resources/sections/new",
+      "/avo/resources/sections/#{section.slug}", "/avo/resources/sections/#{section.slug}/edit",
+      "/avo/resources/sections/#{section.slug}/photos",
+      "/avo/resources/photos", "/avo/resources/photos/new",
+      "/avo/resources/photos/#{photo.id}", "/avo/resources/photos/#{photo.id}/edit",
+      "/avo/resources/users", "/avo/resources/users/#{@admin.id}", "/avo/resources/users/#{@admin.id}/edit"
+    ].each do |path|
+      get path
+      follow_redirect! while response.redirect?
+      assert_response :success, "#{path} did not render"
+    end
   end
 end

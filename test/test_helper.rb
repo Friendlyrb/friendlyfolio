@@ -4,13 +4,15 @@ require "rails/test_help"
 
 module ActiveSupport
   class TestCase
+    include ActiveJob::TestHelper
+
     parallelize(workers: :number_of_processors)
     fixtures :all
 
     # Attaches a real image and marks the photo bakeable, because the public
     # scopes require derivatives_ready_at.
     def create_photo(section, position: 1, fixture: "landscape.jpg", ready: true)
-      photo = section.photos.create!(position: position)
+      photo = Photo.without_auto_bake { section.photos.create!(position: position) }
       photo.image.attach(
         io: File.open(Rails.root.join("test/fixtures/files", fixture)),
         filename: fixture,
