@@ -84,10 +84,13 @@ class WallTest < ActionDispatch::IntegrationTest
     requested = tag[/id="([^"]+)"/, 1]
     assert requested, "the lazy frame should carry an id"
 
-    get gallery_section_path(gallery, second)
+    # Request it the way the gallery actually does, as a frame.
+    get gallery_section_path(gallery, second), headers: { "Turbo-Frame" => requested }
 
-    assert_match(/<turbo-frame id="#{Regexp.escape(requested)}"/, response.body,
-                 "section response must carry the frame id the gallery asked for")
+    tag = response.body[/<turbo-frame[^>]*>/]
+    assert tag, "section response must carry a turbo-frame"
+    assert_equal requested, tag[/id="([^"]+)"/, 1],
+                 "section response must carry the frame id the gallery asked for"
   end
 
   test "the inline first section also carries its frame, so navigating back to it matches" do

@@ -12,26 +12,30 @@
 <% end %>
 
 <%#
-  Wrapped in a matching turbo-frame because the gallery page loads every
-  section after the first through one. Without an element whose id matches
-  dom_id(section), Turbo finds nothing to swap in and the section renders
-  "Content missing" -- which is most of the corpus.
+  Two shapes from one action. The gallery page pulls each section in through a
+  turbo-frame, which wants the wall and nothing else; a visitor arriving at the
+  section's own URL wants a page they can navigate out of. Without the second
+  shape a shared section link is a dead end -- a wall with no title and no way
+  back to the gallery it belongs to.
 %>
-<%= turbo_frame_tag dom_id(@section) do %>
-  <div data-controller="lightbox"
-       data-lightbox-section-path-value="<%= gallery_section_path(@gallery, @section) %>">
-    <%= render "sections/wall", photos: @photos, gallery: @gallery, section: @section %>
+<% if turbo_frame_request? %>
+  <%= render "sections/frame", gallery: @gallery, section: @section, photos: @photos, page: @page, photo: @photo %>
+<% else %>
+  <article class="gallery">
+    <%= render "galleries/cover", gallery: @gallery %>
+    <%= render "sections/nav", gallery: @gallery, current: @section %>
 
-    <% if @section.paginated? %>
-      <nav class="pagination" aria-label="<%= @section.title %> pages">
-        <% (1..@section.page_count).each do |n| %>
-          <%# Real links, so the pages work without JavaScript and can be crawled. %>
-          <a href="<%= gallery_section_path(@gallery, @section, page: n) %>"
-             <%= "aria-current=\"page\"".html_safe if n == @page %>><%= n %></a>
-        <% end %>
-      </nav>
+    <section class="gallery-section">
+      <h2><%= @section.title %></h2>
+      <% if @section.description.present? %>
+        <p class="section-description"><%= @section.description %></p>
+      <% end %>
+
+      <%= render "sections/frame", gallery: @gallery, section: @section, photos: @photos, page: @page, photo: @photo %>
+    </section>
+
+    <% if @gallery.photographer.present? %>
+      <footer class="credit">Photos by <%= @gallery.photographer %></footer>
     <% end %>
-
-    <%= render "photos/lightbox", gallery: @gallery, section: @section, photos: @photos, open_photo: @photo, page: @page %>
-  </div>
+  </article>
 <% end %>

@@ -1,0 +1,18 @@
+<%= turbo_frame_tag dom_id(section), data: { turbo_action: "advance" } do %>
+  <div data-controller="lightbox"
+       data-lightbox-section-path-value="<%= gallery_section_path(gallery, section) %>">
+    <%= render "sections/wall", photos: photos, gallery: gallery, section: section %>
+
+    <% if section.paginated? %>
+      <nav class="pagination" aria-label="<%= section.title %> pages">
+        <% (1..section.page_count).each do |n| %>
+          <%# Real links, so the pages work without JavaScript and can be crawled. %>
+          <a href="<%= gallery_section_path(gallery, section, page: n) %>"
+             <%= 'aria-current="page"'.html_safe if n == page %>><%= n %></a>
+        <% end %>
+      </nav>
+    <% end %>
+
+    <%= render "photos/lightbox", gallery: gallery, section: section, photos: photos, open_photo: photo, page: page %>
+  </div>
+<% end %>

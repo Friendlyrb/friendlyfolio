@@ -114,4 +114,34 @@ class GalleriesTest < ActionDispatch::IntegrationTest
                  "should unfurl the JPEG tier, which unfurlers can decode")
     assert_match(/portrait/, og, "should unfurl the linked photo, not the gallery cover")
   end
+
+  test "a section page loaded directly is navigable, not a bare wall" do
+    gallery = create_gallery(slug: "2020", sections: { "day-1" => "Day 1", "day-2" => "Day 2" })
+    section = gallery.sections.find_by(slug: "day-2")
+    create_photo(section)
+
+    get gallery_section_path(gallery, section)
+
+    assert_response :success
+    # A shared section link has to lead somewhere.
+    assert_match(/href="#{Regexp.escape(gallery_path(gallery))}"/, response.body,
+                 "a section page must link back to its gallery")
+    assert_match(/href="#{Regexp.escape(gallery_section_path(gallery, gallery.sections.first))}"/, response.body,
+                 "a section page must link to the gallery's other sections")
+    assert_match gallery.title, response.body
+    assert_match(/aria-current="page"/, response.body, "the current section should be marked")
+  end
+
+  test "the same section requested as a frame stays bare" do
+    gallery = create_gallery(slug: "2019")
+    section = gallery.sections.first
+    create_photo(section)
+
+    get gallery_section_path(gallery, section),
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(section) }
+
+    assert_response :success
+    assert_no_match(/class="cover"/, response.body, "a frame response must not repeat the cover")
+    assert_no_match(/sections-nav/, response.body, "a frame response must not repeat the nav")
+  end
 end

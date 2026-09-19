@@ -1,0 +1,19 @@
+<header class="cover" style="background: <%= gallery.cover&.dominant_color || "#1e3a8a" %>">
+  <% if gallery.cover %>
+    <%= render "photos/picture",
+               photo: gallery.cover,
+               variants: %i[large_avif large_webp],
+               sizes: "100vw",
+               eager: true,
+               alt: "#{gallery.title} cover photo" %>
+  <% end %>
+  <%# The scrim is not decoration: the title sits over whichever photo the
+      admin picked, and without it a bright cover makes it unreadable. %>
+  <div class="cover__scrim"></div>
+  <div class="cover__text">
+    <% if gallery.held_on %>
+      <time datetime="<%= gallery.held_on.iso8601 %>"><%= gallery.held_on.strftime("%Y-%m-%d") %></time>
+    <% end %>
+    <h1><%= gallery.title %></h1>
+  </div>
+</header>

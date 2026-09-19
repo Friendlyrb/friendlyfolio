@@ -1,0 +1,19 @@
+<%#
+  Present on the gallery page and on every section page, so a section is never
+  a dead end -- the reference keeps the same folder nav on every view, and
+  arriving at a section from a shared link is the common case.
+%>
+<nav class="sections-nav" aria-label="Sections in <%= gallery.title %>">
+  <a class="sections-nav__back" href="<%= gallery_path(gallery) %>">
+    <span aria-hidden="true">&#8249;</span> <%= gallery.title %>
+  </a>
+
+  <% if gallery.sections.size > 1 %>
+    <span class="sections-nav__links">
+      <% gallery.sections.each do |section| %>
+        <a href="<%= gallery_section_path(gallery, section) %>"
+           <%= 'aria-current="page"'.html_safe if section == current %>><%= section.title %></a>
+      <% end %>
+    </span>
+  <% end %>
+</nav>

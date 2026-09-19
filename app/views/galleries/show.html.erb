@@ -24,45 +24,26 @@
 <% end %>
 
 <article class="gallery">
-  <header class="cover" style="background: <%= @gallery.cover&.dominant_color || "#1e3a8a" %>">
-    <% if @gallery.cover %>
-      <%= render "photos/picture",
-                 photo: @gallery.cover,
-                 variants: %i[large_avif large_webp],
-                 sizes: "100vw",
-                 eager: true,
-                 alt: "#{@gallery.title} cover photo" %>
-    <% end %>
-    <%# The scrim is not decoration: the title sits over whichever photo the
-        admin picked, and without it a bright cover makes it unreadable. %>
-    <div class="cover__scrim"></div>
-    <div class="cover__text">
-      <% if @gallery.held_on %>
-        <time datetime="<%= @gallery.held_on.iso8601 %>"><%= @gallery.held_on.strftime("%Y-%m-%d") %></time>
-      <% end %>
-      <h1><%= @gallery.title %></h1>
-    </div>
-  </header>
+  <%= render "galleries/cover", gallery: @gallery %>
 
-  <% if @sections.size > 1 %>
-    <nav class="sections-nav" aria-label="Sections">
-      <% @sections.each do |section| %>
-        <a href="#section-<%= section.slug %>"><%= section.title %></a>
-      <% end %>
-    </nav>
-  <% end %>
+  <%= render "sections/nav", gallery: @gallery, current: nil %>
 
   <% @sections.each_with_index do |section, index| %>
     <section class="gallery-section" id="section-<%= section.slug %>">
       <% if @sections.size > 1 %>
-        <h2><%= section.title %></h2>
+        <h2><%= link_to section.title, gallery_section_path(@gallery, section) %></h2>
       <% end %>
       <% if section.description.present? %>
         <p class="section-description"><%= section.description %></p>
       <% end %>
 
       <% if index.zero? %>
-        <%= render "sections/section_inline", gallery: @gallery, section: section %>
+        <%= render "sections/frame",
+                   gallery: @gallery,
+                   section: section,
+                   photos: section.photos.displayable.with_images.limit(Section::PER_PAGE),
+                   page: 1,
+                   photo: nil %>
       <% else %>
         <%#
           Later sections load lazily. The reserved height matters: an unloaded
