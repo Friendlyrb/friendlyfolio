@@ -16,12 +16,49 @@ class ImportsTest < ActionDispatch::IntegrationTest
     )
   end
 
-  test "the import page is closed to anonymous visitors" do
+  test "the import endpoint is closed to anonymous visitors" do
     sign_out :user
 
-    get new_admin_import_path
+    post admin_imports_path, params: {
+      gallery_slug: @gallery.slug, section_slug: "day-1",
+      filename: "a.jpg", signed_id: upload_blob.signed_id
+    }
 
     assert_response :redirect
+    assert_equal 0, Photo.count
+  end
+
+  test "the Avo tool page renders for a signed-in admin" do
+    get "/avo/import_photos"
+
+    assert_response :success
+    assert_match(/data-controller="importer"/, response.body)
+    assert_match(/importer-sections-value/, response.body)
+  end
+
+  test "an explicitly chosen section is used regardless of folder name" do
+    @gallery.sections.create!(slug: "day-2", title: "Day 2", position: 1)
+
+    post admin_imports_path, params: {
+      gallery_slug: @gallery.slug, section_slug: "day-2",
+      filename: "a.jpg", signed_id: upload_blob.signed_id
+    }
+
+    assert_response :success
+    assert_equal "day-2", response.parsed_body["section"]
+    assert_equal 1, @gallery.sections.find_by(slug: "day-2").photos.count
+  end
+
+  test "a new section name is slugged and titled" do
+    post admin_imports_path, params: {
+      gallery_slug: @gallery.slug, section_slug: "Day 3",
+      filename: "a.jpg", signed_id: upload_blob.signed_id
+    }
+
+    assert_response :success
+    section = @gallery.sections.find_by(slug: "day-3")
+    assert section, "a typed section name should be slugged"
+    assert_equal "Day 3", section.title
   end
 
   test "importing creates the photo and the section named by the folder" do

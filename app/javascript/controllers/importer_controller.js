@@ -7,11 +7,51 @@ const IMAGE = /\.(jpe?g|png|webp|avif|tiff?|heic|heif)$/i
 const CONCURRENCY = 4
 
 export default class extends Controller {
-  static targets = ["drop", "input", "status", "plan", "start", "gallery"]
-  static values = { url: String, directUploadUrl: String }
+  static targets = [
+    "drop", "input", "fileInput", "status", "plan", "start",
+    "gallery", "section", "newSection", "newSectionField", "hint"
+  ]
+  static values = { url: String, directUploadUrl: String, sections: Object }
+
+  // Sentinels for the two choices that are not an existing section.
+  static FROM_FOLDERS = "__folders__"
+  static NEW_SECTION = "__new__"
 
   connect() {
     this.files = []
+    this.galleryChanged()
+  }
+
+  galleryChanged() {
+    const sections = this.sectionsValue[this.galleryTarget.value] || []
+    const options = sections.map(
+      (s) => `<option value="${s.slug}">${s.title}</option>`
+    )
+
+    options.push(`<option value="${this.constructor.NEW_SECTION}">New section…</option>`)
+    options.push(`<option value="${this.constructor.FROM_FOLDERS}">Use folder names</option>`)
+
+    this.sectionTarget.innerHTML = options.join("")
+    // An empty gallery has nothing to pick, so start on the choice that makes
+    // one rather than on a section that does not exist.
+    this.sectionTarget.value = sections.length ? sections[0].slug : this.constructor.NEW_SECTION
+    this.sectionChanged()
+  }
+
+  sectionChanged() {
+    const choice = this.sectionTarget.value
+    this.newSectionFieldTarget.hidden = choice !== this.constructor.NEW_SECTION
+
+    this.hintTarget.textContent =
+      choice === this.constructor.FROM_FOLDERS
+        ? "Each subfolder becomes a section: a file arriving as day-1/DSC_0001.jpg lands in a section called day-1, created if it does not exist."
+        : "Everything you drop goes into this one section, whatever the folder structure."
+
+    if (this.files.length) this.propose(this.files)
+  }
+
+  pickFiles() {
+    this.fileInputTarget.click()
   }
 
   over(event) {
@@ -67,7 +107,7 @@ export default class extends Controller {
   propose(found) {
     this.files = found
     if (!found.length) {
-      this.setStatus("No images found in that folder.")
+      this.setStatus("No images found there.")
       this.startTarget.hidden = true
       return
     }
@@ -81,19 +121,38 @@ export default class extends Controller {
     this.startTarget.hidden = false
   }
 
-  // The first path segment is the section; a loose file has none.
   groupBySection(found) {
     const groups = new Map()
     for (const item of found) {
-      const parts = item.path.split("/")
-      const section = parts.length > 1 ? parts[parts.length - 2] : "photos"
+      const section = this.sectionFor(item)
       if (!groups.has(section)) groups.set(section, [])
       groups.get(section).push(item)
     }
     return groups
   }
 
+  // Either the chosen section, or the folder the file came from.
+  sectionFor(item) {
+    const choice = this.sectionTarget.value
+
+    if (choice === this.constructor.FROM_FOLDERS) {
+      const parts = item.path.split("/")
+      return parts.length > 1 ? parts[parts.length - 2] : "photos"
+    }
+
+    if (choice === this.constructor.NEW_SECTION) {
+      return this.newSectionTarget.value.trim() || "photos"
+    }
+
+    return choice
+  }
+
   async start() {
+    if (this.sectionTarget.value === this.constructor.NEW_SECTION && !this.newSectionTarget.value.trim()) {
+      this.setStatus("Name the new section first.")
+      return
+    }
+
     this.startTarget.hidden = true
     this.inputTarget.disabled = true
 
@@ -128,10 +187,9 @@ export default class extends Controller {
   }
 
   async register(item, blob) {
-    const parts = item.path.split("/")
     const body = new FormData()
     body.append("gallery_slug", this.galleryTarget.value)
-    body.append("section_slug", parts.length > 1 ? parts[parts.length - 2] : "photos")
+    body.append("section_slug", this.sectionFor(item))
     body.append("filename", item.file.name)
     body.append("signed_id", blob.signed_id)
 

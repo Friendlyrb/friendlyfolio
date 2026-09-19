@@ -6,10 +6,12 @@ Rails.application.routes.draw do
   # Inside an authenticate block rather than behind a before_action, so /avo is
   # not even routable when signed out.
   authenticate :user do
-    mount_avo
+    mount_avo do
+      get "import_photos", to: "tools#import_photos", as: :import_photos
+    end
 
     namespace :admin do
-      resources :imports, only: [ :new, :create ]
+      resources :imports, only: :create
     end
   end
 

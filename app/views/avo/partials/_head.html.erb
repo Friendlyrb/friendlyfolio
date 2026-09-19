@@ -1,0 +1,10 @@
+<%#
+  Avo's layout loads Avo's assets, not the app's, so a custom tool that needs
+  an app Stimulus controller gets a dead page. This override hook adds the
+  importmap and the app stylesheet to Avo's <head>.
+
+  The two Stimulus applications coexist: Avo's controllers and the app's have
+  no identifiers in common.
+%>
+<%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+<%= javascript_importmap_tags %>

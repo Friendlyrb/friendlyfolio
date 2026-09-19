@@ -1,0 +1,85 @@
+<%
+  # Sections per gallery, so changing the gallery repopulates the section
+  # picker without a round trip.
+  sections_by_gallery = @galleries.to_h do |gallery|
+    [ gallery.slug, gallery.sections.order(:position).map { |s| { slug: s.slug, title: s.title } } ]
+  end
+%>
+
+<div class="importer"
+     data-controller="importer"
+     data-importer-url-value="<%= main_app.admin_imports_path %>"
+     data-importer-direct-upload-url-value="<%= main_app.rails_direct_uploads_path %>"
+     data-importer-sections-value="<%= sections_by_gallery.to_json %>">
+
+  <% if @galleries.empty? %>
+    <p class="importer__empty">
+      Create a gallery first — there is nowhere to import into yet.
+    </p>
+  <% else %>
+    <div class="importer__row">
+      <label class="importer__field">
+        <span>Gallery</span>
+        <select data-importer-target="gallery" data-action="change->importer#galleryChanged">
+          <% @galleries.each do |gallery| %>
+            <option value="<%= gallery.slug %>"><%= gallery.title %></option>
+          <% end %>
+        </select>
+      </label>
+
+      <label class="importer__field">
+        <span>Section</span>
+        <select data-importer-target="section" data-action="change->importer#sectionChanged"></select>
+      </label>
+    </div>
+
+    <label class="importer__field" hidden data-importer-target="newSectionField">
+      <span>New section name</span>
+      <input type="text" placeholder="Day 3" data-importer-target="newSection">
+    </label>
+
+    <p class="importer__hint" data-importer-target="hint"></p>
+
+    <div class="importer__drop"
+         data-importer-target="drop"
+         data-action="dragover->importer#over dragleave->importer#leave drop->importer#drop">
+      <p><strong>Drop photos or a folder here</strong></p>
+      <p class="importer__or">or</p>
+      <input type="file" multiple webkitdirectory
+             data-importer-target="input"
+             data-action="change->importer#picked">
+      <p class="importer__or">
+        <button type="button" class="importer__link" data-action="importer#pickFiles">pick individual files instead</button>
+      </p>
+      <input type="file" multiple accept="image/*" hidden
+             data-importer-target="fileInput"
+             data-action="change->importer#picked">
+    </div>
+
+    <div class="importer__status" data-importer-target="status" role="status" aria-live="polite"></div>
+    <ul class="importer__plan" data-importer-target="plan"></ul>
+
+    <button class="btn btn--go" type="button" hidden
+            data-importer-target="start"
+            data-action="importer#start">Import</button>
+
+    <details class="importer__note">
+      <summary>Importing a whole edition?</summary>
+      <p>
+        This uploads to the server and bakes there — roughly 12 seconds of CPU
+        per photo, so a 700-photo edition is about two hours of the box's time
+        while it is also serving the site. Fine for tens of photos, a poor trade
+        for hundreds.
+      </p>
+      <p>
+        For a full edition, ingest and bake on a laptop and copy the result up.
+        See <code>photos:ingest</code> in the README.
+      </p>
+      <p>
+        Either way, strip GPS first — photos carrying location data are
+        rejected, because the download button hands out the original file:
+        <code>exiftool -gps:all= -overwrite_original_in_place -r &lt;dir&gt;</code>
+      </p>
+    </details>
+  <% end %>
+</div>

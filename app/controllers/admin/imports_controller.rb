@@ -6,12 +6,10 @@ module Admin
   # into a Photo, one call per file.
   class ImportsController < ApplicationController
     before_action :authenticate_user!
-    before_action :set_gallery, only: :create
+    before_action :set_gallery
 
-    def new
-      @galleries = Gallery.order(:slug)
-    end
-
+    # The page itself is an Avo tool (app/views/avo/tools/import_photos); this
+    # is only the endpoint that turns an uploaded blob into a Photo.
     def create
       section = find_or_create_section
       blob = ActiveStorage::Blob.find_signed!(params.require(:signed_id))

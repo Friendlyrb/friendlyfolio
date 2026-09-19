@@ -205,6 +205,9 @@ Avo.configure do |config|
   # end
 
   ## == Menus ==
+  # Deliberately not setting config.main_menu: it is a Pro feature, and setting
+  # it on Community puts an upgrade banner on every page. The default menu
+  # already lists the resources and the Import photos tool.
   # config.main_menu = -> {
   #   section "Dashboards", icon: "tabler/outline/layout-dashboard" do
   #     all_dashboards

@@ -28,10 +28,12 @@ Two paths, and the right one depends on how many photos.
 
 ### Drop a folder (tens of photos)
 
-Sign in, then **Import → Import photos** in the admin, or go straight to
-`/admin/imports/new`. Drop a folder or pick one, and each subfolder becomes a
-section: a file arriving as `day-1/DSC_0001.jpg` lands in a section called
-`day-1`, created if it does not exist.
+Sign in, then **Tools → Import photos** in the Avo sidebar.
+
+Pick the gallery and the section, then drop a folder or some files. The section
+choice decides where everything lands: an existing section, a new one you name,
+or *Use folder names* — which reads the structure, so a file arriving as
+`day-1/DSC_0001.jpg` goes to a section called `day-1`, created if needed.
 
 Files upload directly to storage rather than through a Rails request, so size
 is not the constraint — server CPU is. Each photo costs about 12 seconds of
