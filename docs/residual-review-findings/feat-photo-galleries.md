@@ -13,6 +13,17 @@ file is the durable record.
   proxy controller authorises on the signed blob id alone. R34 now says this,
   `test/integration/unpublished_bytes_test.rb` pins it, and the README calls
   publication a one-way door. To retract a photo, delete it.
+  - Sharper than first recorded: the proxy controller answers *every*
+    representation request with `public, max-age=31536000, immutable`,
+    regardless of who asked. `set_cache_headers` marks the HTML private for a
+    signed-in admin, but the hundreds of image requests that page fires are
+    not. So previewing an unpublished gallery **from the deployed box** pushes
+    its full-size bytes into the CDN at permanent public URLs — the comment in
+    `ApplicationController` protects the page and not the pictures. Mitigated
+    by a warning banner shown on any unpublished gallery plus a README note to
+    review locally. The alternative — routing representations through an app
+    controller that checks `published?` — forfeits the permanent cacheable URL
+    the whole delivery design rests on, so it was not taken.
 - **Active Storage files have no backup.** Hatchbox's SQLite backups cover the
   database; the ~15 GB under `storage/files/` is the bulk of the data and the
   thing the app exists to hold. Flagged in the README and in the plan's Risks.
@@ -60,6 +71,19 @@ file is the durable record.
 - **Avo uses `ActiveSupport::Configurable`**, which Rails 8.1 deprecates and 8.2
   removes. Nothing breaks today — a real boot produced no deprecation output —
   but it is a Rails 8.2 upgrade blocker to re-check.
+
+## Known latent issues
+
+- **`Photo.without_auto_bake` does not cross `Thread.new`.** Harmless today —
+  its only callers are in tests, and `photos:preprocess` uses `update_columns`
+  so it never fires the callback. But anyone who later wraps a threaded bulk
+  operation in it gets no suppression and no warning.
+- **`csrf_meta_tags` commits a session on every page**, so public responses may
+  carry `Set-Cookie`, which makes Cloudflare and Fastly bypass the cache. If
+  that holds in production, the 5-minute HTML edge cache is doing nothing. The
+  long-lived image caching — which is the load-bearing part — is unaffected,
+  since those responses come from Active Storage and carry no session. Worth
+  measuring against the real CDN before optimising.
 
 ## Not reproduced
 

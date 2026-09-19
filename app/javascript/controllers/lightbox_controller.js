@@ -23,6 +23,7 @@ export default class extends Controller {
     }
 
     this.onPop = () => this.dialogTarget.open && this.closeSilently()
+    this.closingSilently = false
     window.addEventListener("popstate", this.onPop)
 
     // Turbo Drive snapshots an open dialog into its page cache; it then
@@ -106,11 +107,14 @@ export default class extends Controller {
     this.dialogTarget.close()
   }
 
-  // Fires for every close path -- button, Escape, backdrop.
+  // Fires for every close path -- button, Escape, backdrop, and popstate.
   closed() {
-    if (this.sectionPathValue && location.pathname !== this.sectionPathValue) {
+    // A popstate close must not push: the browser already moved us, and
+    // pushing here would destroy the forward entry and strand the Back button.
+    if (!this.closingSilently && this.sectionPathValue && location.pathname !== this.sectionPathValue) {
       history.pushState({}, "", this.sectionPathValue)
     }
+    this.closingSilently = false
     // Browsers restore focus on a normal close, but not when the close was
     // driven by popstate, so put it back explicitly.
     if (this.returnFocusTo) {
@@ -119,7 +123,9 @@ export default class extends Controller {
     }
   }
 
+  // Closes without touching history -- for when the browser moved us itself.
   closeSilently() {
+    this.closingSilently = true
     this.dialogTarget.close()
   }
 }

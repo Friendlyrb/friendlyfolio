@@ -78,6 +78,14 @@ verifies the signed blob id and knows nothing about publication, so a derivative
 URL someone captured while the gallery was public keeps working — and a CDN in
 front will happily keep serving it.
 
+**Review unpublished galleries locally, not on the deployed site.** The page is
+marked private for a signed-in admin, but the images on it are not: Active
+Storage answers every representation request with `public, max-age=31536000,
+immutable`, whoever asked. So previewing an unpublished gallery from the box
+pushes its full-size bytes into the CDN at permanent public URLs — the exact
+thing publication is supposed to prevent. The app shows a warning banner when
+you are looking at an unpublished gallery, for this reason.
+
 There is a test asserting exactly this (`test/integration/unpublished_bytes_test.rb`),
 so the behaviour is recorded rather than assumed. If a photo genuinely has to be
 retracted, delete it; unpublishing is not enough.

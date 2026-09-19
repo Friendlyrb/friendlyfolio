@@ -133,3 +133,12 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); }
 .share-fallback { display: block; width: 100%; margin-top: 0.5rem; padding: 0.5rem; }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+.admin-warning {
+  margin: 0;
+  padding: 0.9rem 1.25rem;
+  background: oklch(0.79 0.16 83);
+  color: #1f2937;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}

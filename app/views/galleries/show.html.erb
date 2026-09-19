@@ -1,5 +1,22 @@
 <% content_for :title, @gallery.title %>
 
+<% if admin_signed_in? && !@gallery.published? %>
+  <%#
+    The page itself is marked private, but the images are not: Active Storage
+    answers every representation request with a permanent public URL and a
+    year-long immutable cache directive, whoever asked. Previewing an
+    unpublished gallery from the deployed box therefore pushes its full-size
+    bytes into the CDN at URLs that keep working after publication is revoked.
+    Preview on a laptop instead. See README, "Publication is a one-way door".
+  %>
+  <p class="admin-warning" role="status">
+    <strong>Unpublished preview.</strong>
+    Only you can see this page — but the photos on it are served at permanent
+    public URLs. Previewing from the deployed site pushes them into the CDN,
+    where they stay reachable even after you unpublish. Review locally instead.
+  </p>
+<% end %>
+
 <article class="gallery">
   <header class="cover" style="background: <%= @gallery.cover&.dominant_color || "#1e3a8a" %>">
     <% if @gallery.cover %>
