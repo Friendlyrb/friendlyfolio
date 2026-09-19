@@ -63,4 +63,38 @@ class WallTest < ActionDispatch::IntegrationTest
 
     assert_operator queries, :<, 20, "wall issued #{queries} queries for 20 tiles"
   end
+
+  # The gallery page loads every section after the first through a turbo-frame.
+  # If the section response carries no matching frame, Turbo has nothing to swap
+  # in and the section renders "Content missing" -- which is most of the corpus.
+  # Asserting on the gallery page's own headings does not catch this, because
+  # those render whether or not the frames resolve.
+  test "a section response carries a turbo-frame whose id matches the gallery's request" do
+    gallery = create_gallery(slug: "2024", sections: { "day-1" => "Day 1", "day-2" => "Day 2" })
+    second = gallery.sections.find_by(slug: "day-2")
+    create_photo(second)
+
+    get gallery_path(gallery)
+    # Attribute order is not guaranteed, so find the frame that requests this
+    # section and read its id out of the same tag.
+    tag = response.body[/<turbo-frame[^>]*src="[^"]*day-2[^"]*"[^>]*>/]
+    assert tag, "gallery page should lazily request the second section in a turbo-frame"
+    requested = tag[/id="([^"]+)"/, 1]
+    assert requested, "the lazy frame should carry an id"
+
+    get gallery_section_path(gallery, second)
+
+    assert_match(/<turbo-frame id="#{Regexp.escape(requested)}"/, response.body,
+                 "section response must carry the frame id the gallery asked for")
+  end
+
+  test "the inline first section also carries its frame, so navigating back to it matches" do
+    gallery = create_gallery(slug: "2023")
+    create_photo(gallery.sections.first)
+
+    get gallery_path(gallery)
+
+    assert_match(/<turbo-frame id="#{Regexp.escape(ActionView::RecordIdentifier.dom_id(gallery.sections.first))}"/,
+                 response.body)
+  end
 end

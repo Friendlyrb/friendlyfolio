@@ -1,3 +1,4 @@
+<%= turbo_frame_tag dom_id(section) do %>
 <div data-controller="lightbox"
      data-lightbox-section-path-value="<%= gallery_section_path(gallery, section) %>">
   <% photos = section.photos.displayable.with_images.limit(Section::PER_PAGE) %>
@@ -11,3 +12,4 @@
   <% end %>
   <%= render "photos/lightbox", gallery: gallery, section: section, photos: photos, open_photo: nil, page: 1 %>
 </div>
+<% end %>

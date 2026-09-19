@@ -82,10 +82,15 @@ There is a test asserting exactly this (`test/integration/unpublished_bytes_test
 so the behaviour is recorded rather than assumed. If a photo genuinely has to be
 retracted, delete it; unpublishing is not enough.
 
-A job worker must be running. Rails only starts Solid Queue in Puma when
-`SOLID_QUEUE_IN_PUMA` is set; without a worker, variants for newly uploaded
-photos are never generated and the first visitor pays for them synchronously.
-Nothing in the test suite catches this, because tests run jobs inline.
+A job worker must be running. Solid Queue is installed and wired up, but Rails
+only starts it inside Puma when `SOLID_QUEUE_IN_PUMA` is set — otherwise run
+`bin/jobs` as a separate process, which is the better shape here since libvips
+then competes with nothing for the web workers' threads.
+
+Without a worker, variants for newly uploaded photos are never generated and
+the first visitor pays for them synchronously inside the request. Nothing in
+the test suite catches this, because tests run jobs inline — the only proof is
+attaching a photo on the real box and watching its derivatives appear.
 
 ### Put a CDN in front
 
