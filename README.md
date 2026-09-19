@@ -20,8 +20,28 @@ visitors rather than merely redirecting them.
 
 ## Getting photos in
 
-Ingest is a rake task, not a browser upload. ~1,900 photos and 15 GB do not
-belong in a form post.
+Two paths, and the right one depends on how many photos.
+
+### Drop a folder (tens of photos)
+
+Sign in, then **Import → Import photos** in the admin, or go straight to
+`/admin/imports/new`. Drop a folder or pick one, and each subfolder becomes a
+section: a file arriving as `day-1/DSC_0001.jpg` lands in a section called
+`day-1`, created if it does not exist.
+
+Files upload directly to storage rather than through a Rails request, so size
+is not the constraint — server CPU is. Each photo costs about 12 seconds of
+baking, so a few dozen is minutes and a whole edition is hours of the box's
+time while it is also serving the site. Re-dropping the same folder is safe;
+already-imported files are skipped by content digest.
+
+Photos carrying GPS are rejected here rather than half-imported, and the page
+tells you which ones.
+
+### Rake tasks (a whole edition)
+
+For hundreds of photos, ingest and bake on a laptop and copy the result up.
+~1,900 photos and 15 GB do not belong in a browser tab.
 
 **Strip GPS first.** The download button hands out the photographer's original
 file, so stripping metadata from derivatives alone would still leak attendee

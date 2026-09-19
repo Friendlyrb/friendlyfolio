@@ -142,3 +142,38 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); }
   font-size: 0.9rem;
   line-height: 1.4;
 }
+
+/* Bulk importer */
+.importer { max-width: 44rem; margin: 3rem auto; padding: 0 1rem; }
+.importer h1 { font-family: var(--font-heading); }
+.importer__field { display: block; margin: 1.5rem 0; }
+.importer__field span { display: block; font-weight: 600; margin-bottom: 0.35rem; }
+.importer__field select { width: 100%; padding: 0.6rem; font: inherit; border: 1px solid #d1d5db; border-radius: 6px; }
+.importer__hint { color: #6b7280; line-height: 1.5; }
+.importer__hint code { background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+
+.importer__drop {
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.importer__drop.is-over { border-color: var(--color-brand, #1e3a8a); background: #eff6ff; }
+.importer__or { color: #9ca3af; margin: 0.75rem 0; }
+
+.importer__status { margin: 1.25rem 0; font-variant-numeric: tabular-nums; }
+.importer__plan { list-style: none; padding: 0; margin: 0; }
+.importer__plan li { padding: 0.4rem 0; border-bottom: 1px solid #f3f4f6; }
+.importer__rejected { color: #b91c1c; }
+
+.btn--go {
+  background: var(--color-brand, #1e3a8a);
+  color: #fff;
+  margin-top: 1.5rem;
+  padding: 0.8rem 2rem;
+  font-weight: 600;
+}
+.importer__note { margin-top: 2.5rem; color: #6b7280; }
+.importer__note summary { cursor: pointer; font-weight: 600; }
+.importer__note p { line-height: 1.5; }

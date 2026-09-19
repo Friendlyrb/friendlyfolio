@@ -7,6 +7,10 @@ Rails.application.routes.draw do
   # not even routable when signed out.
   authenticate :user do
     mount_avo
+
+    namespace :admin do
+      resources :imports, only: [ :new, :create ]
+    end
   end
 
   get "up" => "rails/health#show", as: :rails_health_check
