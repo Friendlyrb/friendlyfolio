@@ -1,0 +1,9 @@
+<div class="wall">
+  <% photos.each_with_index do |photo, index| %>
+    <%= render "sections/tile", photo: photo, gallery: gallery, section: section, eager: index < 6 %>
+  <% end %>
+  <%# Spacers stop the final row stretching its tiles to absurd widths. %>
+  <i class="tile-spacer" aria-hidden="true"></i>
+  <i class="tile-spacer" aria-hidden="true"></i>
+  <i class="tile-spacer" aria-hidden="true"></i>
+</div>

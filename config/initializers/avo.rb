@@ -18,7 +18,14 @@ Avo.configure do |config|
   end
 
   ## == Authentication ==
-  # config.current_user_method = :current_user
+  # Devise supplies `current_user`; the door itself is bolted in config/routes.rb,
+  # where the mount sits inside `authenticate :user`, so an unauthenticated
+  # request is not routed to Avo at all.
+  config.current_user_method = :current_user
+
+  # Names the "user" segment of the sign-out helper, so the sidebar's sign-out
+  # item resolves to Devise's destroy_user_session_path.
+  config.current_user_resource_name = :current_user
   # config.authenticate_with do
   # end
 

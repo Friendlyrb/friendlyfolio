@@ -1,0 +1,54 @@
+<%#
+  Native <dialog>. showModal() provides the top layer, the backdrop, Escape to
+  close, focus containment via inert, and implicit aria-modal -- so most of the
+  accessibility requirement is the element's job, not the controller's.
+  Never add tabindex to it.
+%>
+<dialog class="lightbox"
+        data-lightbox-target="dialog"
+        aria-label="Photo viewer"
+        data-action="click->lightbox#backdropClose keydown->lightbox#key close->lightbox#closed">
+  <figure class="lightbox__figure">
+    <img data-lightbox-target="image" alt="" decoding="async" fetchpriority="high">
+  </figure>
+
+  <div class="lightbox__bar">
+    <span class="lightbox__counter" data-lightbox-target="counter" aria-live="polite"></span>
+
+    <div class="lightbox__actions">
+      <a class="btn" data-lightbox-target="download" download>Download original</a>
+      <a class="btn" data-lightbox-target="share2048" download>Download for sharing</a>
+
+      <button class="btn"
+              type="button"
+              data-controller="share"
+              data-action="share#copy"
+              data-share-target="button">
+        <span data-share-target="label">Copy link</span>
+      </button>
+
+      <button class="btn btn--close" type="button" autofocus data-action="lightbox#close" aria-label="Close viewer">&times;</button>
+    </div>
+  </div>
+
+  <button class="lightbox__nav lightbox__nav--prev" type="button" data-action="lightbox#prev" aria-label="Previous photo">&#8249;</button>
+  <button class="lightbox__nav lightbox__nav--next" type="button" data-action="lightbox#next" aria-label="Next photo">&#8250;</button>
+</dialog>
+
+<script type="application/json" data-lightbox-target="manifest">
+  <%= raw({
+        photos: photos.map do |p|
+          {
+            id: p.id,
+            avif: photo_variant_url(p, :zoom_avif),
+            webp: photo_variant_url(p, :zoom_webp),
+            large: photo_variant_url(p, :large_webp),
+            url: gallery_section_photo_path(gallery, section, p),
+            download: download_gallery_section_photo_path(gallery, section, p),
+            share: download_gallery_section_photo_path(gallery, section, p, size: "share"),
+            alt: "#{section.title}. #{gallery.title}"
+          }
+        end,
+        open: open_photo&.id
+      }.to_json) %>
+</script>

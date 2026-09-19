@@ -1,9 +1,12 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# One admin, from the environment. find_or_create_by! so re-running seeds
+# neither fails nor resets an existing password -- rotation is a console
+# operation, not a side effect of deploying.
+email = ENV["ADMIN_EMAIL"]
+password = ENV["ADMIN_PASSWORD"]
+
+if email.present? && password.present?
+  User.find_or_create_by!(email: email) { |u| u.password = password }
+  puts "Admin ready: #{email}"
+else
+  puts "Set ADMIN_EMAIL and ADMIN_PASSWORD to seed the admin account."
+end

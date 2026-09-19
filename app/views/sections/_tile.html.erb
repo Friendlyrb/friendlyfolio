@@ -1,0 +1,18 @@
+<%#
+  --r is the stored aspect ratio. The tile's width comes out proportional to it,
+  so every tile in a row resolves to the same height and the row justifies
+  flush. The dominant colour fills the space until the image arrives.
+%>
+<a class="tile"
+   style="--r: <%= photo.aspect_ratio %>; background: <%= photo.dominant_color %>"
+   href="<%= gallery_section_photo_path(gallery, section, photo) %>"
+   data-action="click->lightbox#open"
+   data-lightbox-target="tile"
+   data-photo-id="<%= photo.id %>">
+  <%= render "photos/picture",
+             photo: photo,
+             variants: %i[thumb_avif thumb_webp],
+             sizes: "(max-width: 600px) 50vw, (max-width: 1200px) 33vw, 25vw",
+             eager: eager,
+             alt: "#{section.title}. #{gallery.title}" %>
+</a>

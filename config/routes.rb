@@ -1,16 +1,32 @@
 Rails.application.routes.draw do
-  devise_for :users
-  mount_avo
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  # No :registerable on the model is what actually removes the sign-up routes;
+  # this documents the intent and drops the password paths too.
+  devise_for :users, skip: [ :registrations, :passwords ]
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Inside an authenticate block rather than behind a before_action, so /avo is
+  # not even routable when signed out.
+  authenticate :user do
+    mount_avo
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  root "galleries#index"
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # Gallery slugs sit at the root, so they must not swallow the reserved
+  # prefixes above. Everything below is scoped by that constraint.
+  RESERVED = %w[users avo up rails assets active_storage].freeze
+
+  scope ":gallery_slug", constraints: { gallery_slug: /(?!(#{RESERVED.join("|")})\b)[a-z0-9][a-z0-9-]*/ } do
+    get "/", to: "galleries#show", as: :gallery
+
+    scope ":section_slug" do
+      get "/", to: "sections#show", as: :gallery_section
+
+      scope "photos/:id" do
+        get "/", to: "photos#show", as: :gallery_section_photo
+        get "download", to: "photos#download", as: :download_gallery_section_photo
+      end
+    end
+  end
 end

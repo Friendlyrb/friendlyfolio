@@ -1,7 +1,21 @@
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
-  # Changes to the importmap will invalidate the etag for HTML responses
-  stale_when_importmap_changes
+  helper_method :admin_signed_in?
+
+  private
+
+  def admin_signed_in? = user_signed_in?
+
+  # Public pages may be cached at the edge; anything rendered for a signed-in
+  # admin must not be. The same URL renders differently for an admin, so
+  # without this the first admin preview of an unpublished gallery would
+  # populate the CDN with the page publication exists to hide.
+  def set_cache_headers
+    if user_signed_in?
+      response.headers["Cache-Control"] = "private, no-store"
+    else
+      expires_in 5.minutes, public: true
+    end
+  end
 end

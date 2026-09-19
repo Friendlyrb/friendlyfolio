@@ -8,3 +8,128 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+@theme {
+  --font-body: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: oklch(0.36 0.13 264);
+  --color-accent: oklch(0.79 0.16 83);
+}
+
+:root { --gap: 4px; }
+
+body {
+  font-family: var(--font-body);
+  background: #fafafa;
+  color: #1f2937;
+  margin: 0;
+}
+
+h1, h2, .gallery-card__title { font-family: var(--font-heading); }
+
+/*
+  The justified wall.
+
+  Each tile's flex-basis is its aspect ratio times the target row height, so the
+  free space in a row distributes proportionally to the same ratio and every
+  tile resolves to the same height. Rows justify flush, nothing is cropped, and
+  because --r comes from stored dimensions the space is reserved before a single
+  image byte arrives.
+
+  The non-zero basis is load-bearing. `flex: var(--r) 1 0` -- the version most
+  articles show -- never wraps, because a zero basis can never exceed the
+  container, so every photo lands on one row.
+*/
+.wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  --h: 240px;
+}
+
+.tile {
+  flex: var(--r) 1 calc(var(--r) * var(--h));
+  aspect-ratio: var(--r);
+  display: block;
+  overflow: hidden;
+  border-radius: 2px;
+  position: relative;
+}
+
+.tile img,
+.tile picture { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+.tile-spacer { flex-grow: 1e4; height: 0; }
+
+@media (max-width: 1200px) { .wall { --h: 200px; } }
+@media (max-width: 600px)  { .wall { --h: 150px; } }
+
+.wall-placeholder { min-height: 200px; }
+
+/* Cover */
+.cover { position: relative; height: 100svh; overflow: hidden; }
+.cover picture, .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Not decoration: the title sits over whatever photo the admin chose. */
+.cover__scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.45) 0%, rgb(0 0 0 / 0.1) 40%, rgb(0 0 0 / 0.6) 100%);
+}
+
+.cover__text {
+  position: absolute; left: 0; right: 0; bottom: 3rem;
+  text-align: center; color: #fff;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.5);
+}
+.cover__text h1 { font-size: clamp(2rem, 6vw, 4.5rem); margin: 0.25em 0 0; }
+.cover__text time { letter-spacing: 0.15em; text-transform: uppercase; font-size: 0.8rem; opacity: 0.9; }
+
+.sections-nav {
+  display: flex; gap: 1.5rem; padding: 1.5rem;
+  overflow-x: auto; justify-content: center;
+  position: sticky; top: 0; background: #fafafaee; backdrop-filter: blur(8px); z-index: 10;
+}
+.sections-nav a { color: var(--color-brand, #1e3a8a); text-decoration: none; white-space: nowrap; font-weight: 600; }
+
+.gallery-section { padding: 1rem; }
+.gallery-section h2 { margin-bottom: 0.25rem; }
+.section-description { color: #6b7280; margin: 0 0 1rem; }
+
+/* Index */
+.page-header { text-align: center; padding: 4rem 1rem 2rem; }
+.lede { color: #6b7280; max-width: 40rem; margin: 0.5rem auto 0; }
+.gallery-index { list-style: none; display: grid; gap: 1.5rem; padding: 1rem; margin: 0 auto; max-width: 72rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+.gallery-card a { text-decoration: none; color: inherit; display: block; }
+.gallery-card__cover { display: block; aspect-ratio: 3/2; overflow: hidden; border-radius: 6px; }
+.gallery-card__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-card__title { display: block; font-size: 1.25rem; margin-top: 0.75rem; }
+.gallery-card__meta { color: #6b7280; font-size: 0.9rem; }
+.credit { text-align: center; color: #6b7280; padding: 3rem 1rem; }
+.empty { text-align: center; color: #6b7280; padding: 3rem; }
+
+/* Pagination -- real links, so they work without JavaScript. */
+.pagination { display: flex; gap: 0.5rem; justify-content: center; padding: 2rem; }
+.pagination a { padding: 0.5rem 0.9rem; border-radius: 4px; text-decoration: none; color: var(--color-brand, #1e3a8a); }
+.pagination a[aria-current="page"] { background: var(--color-brand, #1e3a8a); color: #fff; }
+
+/* Lightbox */
+.lightbox { border: 0; padding: 0; max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; background: #111; }
+.lightbox::backdrop { background: rgb(0 0 0 / 0.9); }
+.lightbox__figure { margin: 0; height: 100%; display: grid; place-items: center; }
+.lightbox__figure img { max-width: 96vw; max-height: 86vh; object-fit: contain; }
+.lightbox__bar { position: absolute; bottom: 0; left: 0; right: 0; display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; padding: 1rem; color: #fff; flex-wrap: wrap; }
+.lightbox__counter { font-variant-numeric: tabular-nums; opacity: 0.8; }
+.lightbox__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.btn { background: rgb(255 255 255 / 0.12); color: #fff; border: 0; border-radius: 999px;
+  padding: 0.6rem 1.1rem; font: inherit; cursor: pointer; text-decoration: none; }
+.btn:hover { background: rgb(255 255 255 / 0.22); }
+.btn--close { font-size: 1.4rem; line-height: 1; padding: 0.35rem 0.8rem; }
+.lightbox__nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgb(255 255 255 / 0.1);
+  color: #fff; border: 0; font-size: 2rem; width: 3rem; height: 5rem; cursor: pointer; }
+.lightbox__nav--prev { left: 0; }
+.lightbox__nav--next { right: 0; }
+.share-fallback { display: block; width: 100%; margin-top: 0.5rem; padding: 0.5rem; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -1,0 +1,17 @@
+<%#
+  sizes must be written on the <source> as well as the <img>. A <source>
+  does not inherit it, and omitting it silently means 100vw -- which makes the
+  browser fetch the largest candidate on a page that otherwise looks correct.
+%>
+<picture>
+  <source type="image/avif"
+          srcset="<%= photo_variant_url(photo, variants[0]) %>"
+          sizes="<%= sizes %>">
+  <img src="<%= photo_variant_url(photo, variants[1]) %>"
+       sizes="<%= sizes %>"
+       width="<%= photo.width %>"
+       height="<%= photo.height %>"
+       alt="<%= alt %>"
+       decoding="async"
+       <%= eager ? "fetchpriority=\"high\"".html_safe : "loading=\"lazy\"".html_safe %>>
+</picture>
