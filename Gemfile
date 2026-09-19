@@ -67,3 +67,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+# json 3.x removed the two-argument JSON.parse that ActiveSupport 8.1 still
+# calls, which breaks Active Storage blob metadata deserialization.
+gem "json", "~> 2.9"
