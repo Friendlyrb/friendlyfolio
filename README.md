@@ -10,9 +10,13 @@ accounts, no sign-up, and no client-proofing machinery.
 
 ```bash
 bin/setup
-ADMIN_EMAIL=you@friendlyrb.com ADMIN_PASSWORD=... bin/rails db:seed
+bin/rails db:seed   # adrian@adrianthedev.com / secreto
 bin/dev
 ```
+
+Those credentials are a development default. Production has none — set
+`ADMIN_EMAIL` and `ADMIN_PASSWORD` there, or seeding refuses to run. A known
+password on a public box is not a convenience.
 
 The admin lives at `/avo` and is unreachable without signing in — it is mounted
 inside a Devise `authenticate` block, so the route does not exist for anonymous
