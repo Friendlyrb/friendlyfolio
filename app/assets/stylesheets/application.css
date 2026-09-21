@@ -72,7 +72,9 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); }
 .wall-placeholder { min-height: 200px; }
 
 /* Cover */
-.cover { position: relative; height: 100svh; overflow: hidden; }
+/* Deliberately short of a fold: moving between sections must land you on the
+   wall with the nav in view, not on a full-screen cover with no orientation. */
+.cover { position: relative; height: 42svh; min-height: 15rem; overflow: hidden; }
 .cover picture, .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* Not decoration: the title sits over whatever photo the admin chose. */
@@ -82,11 +84,11 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); }
 }
 
 .cover__text {
-  position: absolute; left: 0; right: 0; bottom: 3rem;
+  position: absolute; left: 0; right: 0; bottom: 2rem;
   text-align: center; color: #fff;
   text-shadow: 0 1px 12px rgb(0 0 0 / 0.5);
 }
-.cover__text h1 { font-size: clamp(2rem, 6vw, 4.5rem); margin: 0.25em 0 0; }
+.cover__text h1 { font-size: clamp(1.75rem, 5vw, 3.25rem); margin: 0.25em 0 0; }
 .cover__text time { letter-spacing: 0.15em; text-transform: uppercase; font-size: 0.8rem; opacity: 0.9; }
 
 .sections-nav {
