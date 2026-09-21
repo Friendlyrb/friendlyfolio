@@ -4,7 +4,7 @@ import { Controller } from "@hotwired/stimulus"
 // <dialog> already provides -- focus trapping, Escape, the backdrop, aria-modal
 // -- is deliberately not reimplemented here.
 export default class extends Controller {
-  static targets = ["dialog", "figure", "image", "avif", "counter", "download", "share2048", "tile", "manifest"]
+  static targets = ["dialog", "figure", "placeholder", "image", "avif", "counter", "download", "share2048", "tile", "manifest"]
   static values = { sectionPath: String }
 
   connect() {
@@ -57,11 +57,14 @@ export default class extends Controller {
     this.avifTarget.srcset = photo.avif
     this.imageTarget.src = photo.webp
     // The <img> keeps painting the previous photo until the new bytes decode,
-    // so reopening on another tile flashes whatever was last open. decode()
-    // resolves once the current src is ready to paint; a swap that overtakes
-    // it rejects, and that newer show() reveals in its turn.
-    this.imageTarget.style.visibility = "hidden"
-    this.imageTarget.decode().then(() => { this.imageTarget.style.visibility = "visible" }, () => {})
+    // so reopening on another tile flashes whatever was last open. Hold the
+    // photo's box in its dominant colour until decode() says the new one is
+    // ready to paint; a swap that overtakes it rejects, and that newer show()
+    // reveals in its turn.
+    this.placeholderTarget.style.setProperty("--r", photo.r)
+    this.placeholderTarget.style.setProperty("--c", photo.color || "#222")
+    this.figureTarget.classList.add("is-loading")
+    this.imageTarget.decode().then(() => this.figureTarget.classList.remove("is-loading"), () => {})
     this.imageTarget.alt = photo.alt
     this.downloadTarget.href = photo.download
     this.share2048Target.href = photo.share

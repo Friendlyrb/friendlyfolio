@@ -134,6 +134,13 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); }
 .lightbox { border: 0; padding: 0; max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; background: #111; }
 .lightbox::backdrop { background: rgb(0 0 0 / 0.9); }
 .lightbox__figure { margin: 0; height: 100%; display: grid; place-items: center; }
+/* Placeholder and photo share one grid cell, so the colour block sits exactly
+   where the photo lands and a slow load is a rectangle, not a hole. */
+.lightbox__figure > * { grid-area: 1 / 1; }
+.lightbox__placeholder { width: min(96vw, calc(86vh * var(--r, 1.5))); aspect-ratio: var(--r, 1.5);
+  background: var(--c, #222); border-radius: 2px; }
+.lightbox__figure.is-loading img { visibility: hidden; }
+.lightbox__figure:not(.is-loading) .lightbox__placeholder { display: none; }
 .lightbox__figure img { max-width: 96vw; max-height: 86vh; object-fit: contain; }
 .lightbox__bar { position: absolute; bottom: 0; left: 0; right: 0; display: flex; align-items: center;
   justify-content: space-between; gap: 1rem; padding: 1rem; color: #fff; flex-wrap: wrap; }
