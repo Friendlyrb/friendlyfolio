@@ -47,3 +47,10 @@ r2:
   region: auto
   request_checksum_calculation: when_required
   response_checksum_validation: when_required
+  # Written onto every object so the CDN can hold it forever. Active Storage
+  # keys are content-addressed and never reused, so nothing behind one of these
+  # URLs can change. Cloudflare still needs a cache rule to treat them as
+  # cacheable -- these keys carry no file extension, and its default eligibility
+  # is extension-based -- but without the header the rule has nothing to honour.
+  upload:
+    cache_control: "public, max-age=31536000, immutable"
