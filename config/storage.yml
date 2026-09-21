@@ -25,3 +25,19 @@ local:
 #   service: Mirror
 #   primary: local
 #   mirrors: [ amazon, google, microsoft ]
+
+# Cloudflare R2. S3-compatible, so the S3 service drives it -- the differences
+# are the endpoint, region "auto" (R2 has no regions), and that R2 has no ACLs,
+# so `public: true` here only decides how Rails builds URLs. What actually makes
+# an object readable is the bucket's custom domain, configured in Cloudflare.
+r2:
+  service: S3
+  endpoint: https://<%= ENV["R2_ACCOUNT_ID"] %>.r2.cloudflarestorage.com
+  access_key_id: <%= ENV["R2_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["R2_SECRET_ACCESS_KEY"] %>
+  bucket: <%= ENV["R2_BUCKET"] %>
+  region: auto
+  public: true
+  # R2 rejects the ACL header Active Storage sends for a public service.
+  upload:
+    acl: ~

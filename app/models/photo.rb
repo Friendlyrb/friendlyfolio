@@ -53,11 +53,16 @@ class Photo < ApplicationRecord
   scope :displayable, -> { where.not(derivatives_ready_at: nil) }
 
   # Without this every tile queries for its attachment and blob -- several
-  # hundred queries on a full wall. Variant records are deliberately NOT eager
-  # loaded: a proxy-mode URL is built from the blob's signed id, the variation
-  # key and the filename, so it never reads them, and loading them would add
-  # thousands of unused objects per page.
-  scope :with_images, -> { includes(image_attachment: :blob) }
+  # hundred queries on a full wall.
+  #
+  # Variant records are loaded too, and that is a reversal: a proxy URL is built
+  # from the blob's signed id and the variation key, so it never read them. A
+  # CDN URL is the variant's own key, which is stored on the record, so each
+  # tile would otherwise fetch the record, its attachment and its blob -- three
+  # queries per variant, ~1,800 on a 300-tile wall.
+  scope :with_images, -> {
+    includes(image_attachment: { blob: { variant_records: { image_attachment: :blob } } })
+  }
 
   def aspect_ratio
     return 1.5 if width.to_i.zero? || height.to_i.zero?
