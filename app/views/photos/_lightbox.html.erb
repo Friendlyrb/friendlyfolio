@@ -8,7 +8,7 @@
         data-lightbox-target="dialog"
         aria-label="Photo viewer"
         data-action="click->lightbox#backdropClose keydown->lightbox#key close->lightbox#closed">
-  <figure class="lightbox__figure">
+  <figure class="lightbox__figure" data-lightbox-target="figure">
     <%# Both sources are swapped by the controller. Without the <source>, the
         AVIF tier is encoded for every photo and then never delivered. %>
     <picture>

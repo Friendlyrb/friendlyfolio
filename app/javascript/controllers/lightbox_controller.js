@@ -4,7 +4,7 @@ import { Controller } from "@hotwired/stimulus"
 // <dialog> already provides -- focus trapping, Escape, the backdrop, aria-modal
 // -- is deliberately not reimplemented here.
 export default class extends Controller {
-  static targets = ["dialog", "image", "avif", "counter", "download", "share2048", "tile", "manifest"]
+  static targets = ["dialog", "figure", "image", "avif", "counter", "download", "share2048", "tile", "manifest"]
   static values = { sectionPath: String }
 
   connect() {
@@ -56,6 +56,12 @@ export default class extends Controller {
     // smaller candidate rather than starting the WebP fetch first.
     this.avifTarget.srcset = photo.avif
     this.imageTarget.src = photo.webp
+    // The <img> keeps painting the previous photo until the new bytes decode,
+    // so reopening on another tile flashes whatever was last open. decode()
+    // resolves once the current src is ready to paint; a swap that overtakes
+    // it rejects, and that newer show() reveals in its turn.
+    this.imageTarget.style.visibility = "hidden"
+    this.imageTarget.decode().then(() => { this.imageTarget.style.visibility = "visible" }, () => {})
     this.imageTarget.alt = photo.alt
     this.downloadTarget.href = photo.download
     this.share2048Target.href = photo.share
@@ -103,7 +109,10 @@ export default class extends Controller {
   }
 
   backdropClose(event) {
-    if (event.target === this.dialogTarget) this.close()
+    // The dialog is opaque and the figure fills it edge to edge, so the dark
+    // surround a visitor reads as the backdrop is the figure, and a test for
+    // the dialog alone never fires.
+    if (event.target === this.dialogTarget || event.target === this.figureTarget) this.close()
   }
 
   close() {
