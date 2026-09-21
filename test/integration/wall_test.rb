@@ -106,12 +106,12 @@ class WallTest < ActionDispatch::IntegrationTest
   end
 
   # The placeholder is the only thing standing in for the photo while it loads,
-  # so it matters that the hash reaches the manifest -- and that a blob nobody
-  # has analyzed yet degrades to the dominant colour instead of blowing up.
-  test "the lightbox manifest carries a blurhash for an analyzed photo" do
-    analyzed = create_photo(@section, position: 1)
-    analyzed.image.blob.analyze
-    create_photo(@section, position: 2, fixture: "portrait.jpg")
+  # so it matters that the hash reaches the manifest -- and that a photo whose
+  # hash could not be derived degrades to its dominant colour rather than
+  # rendering nothing.
+  test "the lightbox manifest carries a blurhash, and the colour without one" do
+    create_photo(@section, position: 1)
+    create_photo(@section, position: 2, fixture: "portrait.jpg").update_column(:blurhash, nil)
 
     get gallery_section_path(@gallery, @section)
 

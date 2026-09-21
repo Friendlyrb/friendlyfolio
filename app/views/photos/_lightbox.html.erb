@@ -57,7 +57,7 @@
             alt: "#{section.title}. #{gallery.title}",
             r: p.aspect_ratio,
             color: p.dominant_color,
-            blurhash: p.image.blob.metadata["blurhash"]
+            blurhash: p.blurhash
           }
         end,
         open: open_photo&.id,

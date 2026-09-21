@@ -66,17 +66,16 @@ bin/rails "photos:preprocess[2025]"
 bin/rails "photos:verify[2025]"     # must report nothing missing before publishing
 ```
 
-Photos imported before the lightbox placeholder landed carry no blurhash in
-their blob metadata, and fall back to their dominant colour. Backfill them once,
-locally, before transferring `storage/`:
+Photos imported before the lightbox placeholder landed carry no blurhash, and
+fall back to their dominant colour. Re-derive their metadata once. This
+downloads every original, so run it where that is cheap:
 
 ```bash
-bin/rails active_storage_blurhash:backfill
+bin/rails runner 'Photo.find_each(&:extract_image_metadata)'
 ```
 
-That task enqueues one analysis job per attachment, so `bin/jobs` has to be
-running to drain them. New imports need nothing: `bake_variants!` analyzes
-inline, because the bulk path suppresses the job that would otherwise do it.
+New imports need nothing: the hash comes out of the same pass that already
+reads the file for dimensions and colour.
 
 **Bake locally, then copy up.** AVIF encoding dominates the pipeline; running it
 on the server competes with Puma for cores and risks an OOM. Ingest and bake on

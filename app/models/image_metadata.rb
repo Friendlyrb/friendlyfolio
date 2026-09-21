@@ -18,6 +18,7 @@ module ImageMetadata
         width: image.width,
         height: image.height,
         dominant_color: dominant_color(file.path),
+        blurhash: blurhash(file.path),
         has_location_data: located?(image),
         original_filename: photo.original_filename.presence || photo.image.filename.to_s,
         updated_at: Time.current
@@ -39,14 +40,33 @@ module ImageMetadata
   # One vips call: shrink the whole image to a single pixel and read it. This
   # stays the wall's placeholder -- a tile is 400px with its space already
   # reserved, so a flat colour is all that is missing, and a canvas per tile on
-  # a wall of hundreds is not. The lightbox is the other case: one photo filling
-  # the screen, where active_storage-blurhash earns its keep. The colour is
-  # still the fallback there for any blob that has not been analyzed.
+  # a wall of hundreds is not. It is also the lightbox's fallback whenever the
+  # hash below could not be derived.
   def dominant_color(path)
     pixel = Vips::Image.thumbnail(path, 1, height: 1).colourspace(:srgb)
     r, g, b = pixel.getpoint(0, 0).first(3).map { |v| v.to_i.clamp(0, 255) }
     format("#%02x%02x%02x", r, g, b)
   rescue StandardError
     "#e5e5e5"
+  end
+
+  # The lightbox placeholder: one photo filling the screen is the case a flat
+  # colour serves badly.
+  #
+  # Derived here, from the file the caller already downloaded, rather than
+  # through active_storage-blurhash. That gem's analyzer hands vips the *path*
+  # of an ImageProcessing tempfile and drops the Tempfile itself; vips opens it
+  # lazily, so GC unlinks the file before the pixels are read and every job on a
+  # busy worker dies with "unable to open for read". Doing it here also skips a
+  # second download of an original this method already has on disk.
+  #
+  # 32px is generous: the hash is 4x3 components, so everything finer is thrown
+  # away by the encoder.
+  def blurhash(path)
+    thumb = Vips::Image.thumbnail(path, 32).colourspace(:srgb)
+    thumb = thumb.extract_band(0, n: 3) if thumb.bands > 3
+    Blurhash.encode(thumb.width, thumb.height, thumb.to_a.flatten)
+  rescue StandardError
+    nil
   end
 end
