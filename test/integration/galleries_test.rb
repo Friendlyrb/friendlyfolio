@@ -154,4 +154,24 @@ class GalleriesTest < ActionDispatch::IntegrationTest
 
     assert_match(/class="gallery-card__cover".*?data-blurhash="[^"]+"/m, response.body)
   end
+
+  test "the index links out to the conference site" do
+    get root_path
+
+    assert_match(%r{href="https://friendlyrb\.com"}, response.body)
+  end
+
+  test "a gallery page offers a way back to the index, and a section back to its gallery" do
+    gallery = create_gallery(sections: { "day-1" => "Day 1" })
+    section = gallery.sections.first
+    create_photo(section)
+
+    get gallery_path(gallery)
+    back = response.body[/<a class="sections-nav__back".*?<\/a>/m]
+    assert_match(/href="#{root_path}"/, back, "the gallery page linked to itself")
+
+    get gallery_section_path(gallery, section)
+    back = response.body[/<a class="sections-nav__back".*?<\/a>/m]
+    assert_match(/href="#{gallery_path(gallery)}"/, back)
+  end
 end

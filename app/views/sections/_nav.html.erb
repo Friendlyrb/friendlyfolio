@@ -4,8 +4,11 @@
   arriving at a section from a shared link is the common case.
 %>
 <nav class="sections-nav" aria-label="Sections in <%= gallery.title %>">
-  <a class="sections-nav__back" href="<%= gallery_path(gallery) %>">
-    <span aria-hidden="true">&#8249;</span> <%= gallery.title %>
+  <%# One step back, wherever that is: a section returns to its gallery, and the
+      gallery itself returns to the index. Pointing this at the gallery
+      unconditionally made it a link to the page you were already on. %>
+  <a class="sections-nav__back" href="<%= current ? gallery_path(gallery) : root_path %>">
+    <span aria-hidden="true">&#8249;</span> <%= current ? gallery.title : "All editions" %>
   </a>
 
   <% if gallery.sections.size > 1 %>

@@ -115,6 +115,9 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); }
 /* Index */
 .page-header { text-align: center; padding: 4rem 1rem 2rem; }
 .lede { color: #6b7280; max-width: 40rem; margin: 0.5rem auto 0; }
+.page-header__link { margin: 1.25rem 0 0; }
+.page-header__link a { color: var(--color-brand, #1e3a8a); text-decoration: none; font-weight: 600; }
+.page-header__link a:hover { text-decoration: underline; }
 .gallery-index { list-style: none; display: grid; gap: 1.5rem; padding: 1rem; margin: 0 auto; max-width: 72rem;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
 .gallery-card a { text-decoration: none; color: inherit; display: block; }
