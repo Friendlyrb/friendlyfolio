@@ -121,4 +121,18 @@ class WallTest < ActionDispatch::IntegrationTest
     assert_nil photos.second["blurhash"]
     assert_predicate photos.second["color"], :present?
   end
+
+  # The wall blurs a lazily loaded tile in from this attribute, and leaves the
+  # dominant colour alone for a photo that has no hash yet.
+  test "a tile carries its blurhash when it has one" do
+    create_photo(@section, position: 1)
+    create_photo(@section, position: 2, fixture: "portrait.jpg").update_column(:blurhash, nil)
+
+    get gallery_section_path(@gallery, @section)
+
+    tiles = response.body.scan(/<a class="tile".*?<picture/m)
+    assert_equal 2, tiles.size
+    assert_match(/data-blurhash="[^"]+"/, tiles.first)
+    assert_no_match(/data-blurhash/, tiles.second)
+  end
 end

@@ -5,11 +5,13 @@
   <p class="lede">Every edition, every day, every hallway conversation someone pointed a camera at.</p>
 </header>
 
-<ul class="gallery-index">
+<ul class="gallery-index" data-controller="blurhash">
   <% @galleries.each do |gallery| %>
     <li class="gallery-card">
       <a href="<%= gallery_path(gallery) %>">
-        <span class="gallery-card__cover" style="background: <%= gallery.cover&.dominant_color || "#1e3a8a" %>">
+        <span class="gallery-card__cover"
+              style="background: <%= gallery.cover&.dominant_color || "#1e3a8a" %>"
+              <%= tag.attributes(data: { blurhash: gallery.cover&.blurhash }) if gallery.cover&.blurhash.present? %>>
           <% if gallery.cover %>
             <%= render "photos/picture",
                        photo: gallery.cover,

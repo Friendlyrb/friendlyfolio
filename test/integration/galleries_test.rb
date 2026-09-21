@@ -144,4 +144,14 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     assert_no_match(/class="cover"/, response.body, "a frame response must not repeat the cover")
     assert_no_match(/sections-nav/, response.body, "a frame response must not repeat the nav")
   end
+
+  test "an index card carries its cover's blurhash" do
+    gallery = create_gallery
+    photo = create_photo(gallery.sections.first)
+    gallery.update!(cover_photo: photo)
+
+    get root_path
+
+    assert_match(/class="gallery-card__cover".*?data-blurhash="[^"]+"/m, response.body)
+  end
 end

@@ -1,14 +1,16 @@
 <%#
   --r is the stored aspect ratio. The tile's width comes out proportional to it,
   so every tile in a row resolves to the same height and the row justifies
-  flush. The dominant colour fills the space until the image arrives.
+  flush. The dominant colour fills the space until the image arrives, with the
+  blurhash painted over it by the blurhash controller as the tile nears view.
 %>
 <a class="tile"
    style="--r: <%= photo.aspect_ratio %>; background: <%= photo.dominant_color %>"
    href="<%= gallery_section_photo_path(gallery, section, photo) %>"
    data-action="click->lightbox#open"
    data-lightbox-target="tile"
-   data-photo-id="<%= photo.id %>">
+   data-photo-id="<%= photo.id %>"
+   <%= tag.attributes(data: { blurhash: photo.blurhash }) if photo.blurhash.present? %>>
   <%= render "photos/picture",
              photo: photo,
              variants: %i[thumb_avif thumb_webp],

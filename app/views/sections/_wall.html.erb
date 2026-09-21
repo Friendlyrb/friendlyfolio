@@ -1,4 +1,4 @@
-<div class="wall">
+<div class="wall" data-controller="blurhash">
   <% photos.each_with_index do |photo, index| %>
     <%= render "sections/tile", photo: photo, gallery: gallery, section: section, eager: index < 6 %>
   <% end %>
