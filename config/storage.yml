@@ -26,10 +26,18 @@ local:
 #   primary: local
 #   mirrors: [ amazon, google, microsoft ]
 
-# Cloudflare R2. S3-compatible, so the S3 service drives it -- the differences
-# are the endpoint, region "auto" (R2 has no regions), and that R2 has no ACLs,
-# so `public: true` here only decides how Rails builds URLs. What actually makes
-# an object readable is the bucket's custom domain, configured in Cloudflare.
+# Cloudflare R2. S3-compatible, so the S3 service drives it, but two of its
+# gaps are load-bearing here.
+#
+# No `public: true`. Setting it makes Active Storage attach `acl: public-read`
+# to every upload, and R2 has no ACLs -- the PUT is accepted and the object is
+# never stored, so uploads "succeed" into nothing. What makes objects readable
+# is the bucket's custom domain in Cloudflare, not an ACL, and public URLs are
+# built by photo_variant_url from R2_PUBLIC_HOST rather than by Rails.
+#
+# The checksum settings are the other one: aws-sdk sends a CRC32 alongside the
+# MD5 Active Storage already computes, and R2 rejects a request carrying two
+# ("You can only specify one non-default checksum at a time").
 r2:
   service: S3
   endpoint: https://<%= ENV["R2_ACCOUNT_ID"] %>.r2.cloudflarestorage.com
@@ -37,7 +45,5 @@ r2:
   secret_access_key: <%= ENV["R2_SECRET_ACCESS_KEY"] %>
   bucket: <%= ENV["R2_BUCKET"] %>
   region: auto
-  public: true
-  # R2 rejects the ACL header Active Storage sends for a public service.
-  upload:
-    acl: ~
+  request_checksum_calculation: when_required
+  response_checksum_validation: when_required
