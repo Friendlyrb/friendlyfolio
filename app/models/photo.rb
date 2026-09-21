@@ -109,6 +109,11 @@ class Photo < ApplicationRecord
             "exiftool -gps:all= -overwrite_original <dir>"
     end
 
+    # The bulk import suppresses AnalyzeJob, so without this an imported photo
+    # never gets the blurhash the lightbox placeholder decodes. Analysis is
+    # idempotent and the admin upload path runs the job itself, hence the guard.
+    image.blob.analyze unless image.blob.analyzed?
+
     VARIANTS.each_key { |name| image.variant(name).processed }
     update!(derivatives_ready_at: Time.current)
   end

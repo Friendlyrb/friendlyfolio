@@ -9,9 +9,9 @@
         aria-label="Photo viewer"
         data-action="click->lightbox#backdropClose keydown->lightbox#key close->lightbox#closed">
   <figure class="lightbox__figure" data-lightbox-target="figure">
-    <%# Holds the photo's exact box in its dominant colour until the bytes
-        arrive -- the same trick a wall tile uses. %>
-    <div class="lightbox__placeholder" data-lightbox-target="placeholder" aria-hidden="true"></div>
+    <%# Holds the photo's exact box until the bytes arrive: the blurhash if the
+        blob has been analyzed, its dominant colour underneath either way. %>
+    <canvas class="lightbox__placeholder" data-lightbox-target="placeholder" aria-hidden="true"></canvas>
     <%# Both sources are swapped by the controller. Without the <source>, the
         AVIF tier is encoded for every photo and then never delivered. %>
     <picture>
@@ -56,7 +56,8 @@
             share: download_gallery_section_photo_path(gallery, section, p, size: "share"),
             alt: "#{section.title}. #{gallery.title}",
             r: p.aspect_ratio,
-            color: p.dominant_color
+            color: p.dominant_color,
+            blurhash: p.image.blob.metadata["blurhash"]
           }
         end,
         open: open_photo&.id,

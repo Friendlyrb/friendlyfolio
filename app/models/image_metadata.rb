@@ -36,10 +36,12 @@ module ImageMetadata
     false
   end
 
-  # One vips call: shrink the whole image to a single pixel and read it. Cheaper
-  # and simpler than any placeholder scheme that needs a gem and a JS decoder,
-  # and the tile already has its space reserved, so the colour is all that is
-  # missing.
+  # One vips call: shrink the whole image to a single pixel and read it. This
+  # stays the wall's placeholder -- a tile is 400px with its space already
+  # reserved, so a flat colour is all that is missing, and a canvas per tile on
+  # a wall of hundreds is not. The lightbox is the other case: one photo filling
+  # the screen, where active_storage-blurhash earns its keep. The colour is
+  # still the fallback there for any blob that has not been analyzed.
   def dominant_color(path)
     pixel = Vips::Image.thumbnail(path, 1, height: 1).colourspace(:srgb)
     r, g, b = pixel.getpoint(0, 0).first(3).map { |v| v.to_i.clamp(0, 255) }

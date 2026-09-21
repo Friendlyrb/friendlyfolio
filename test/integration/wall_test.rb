@@ -104,4 +104,21 @@ class WallTest < ActionDispatch::IntegrationTest
     assert tag, "the inline section should still render inside a frame"
     assert_equal expected, tag[/id="([^"]+)"/, 1]
   end
+
+  # The placeholder is the only thing standing in for the photo while it loads,
+  # so it matters that the hash reaches the manifest -- and that a blob nobody
+  # has analyzed yet degrades to the dominant colour instead of blowing up.
+  test "the lightbox manifest carries a blurhash for an analyzed photo" do
+    analyzed = create_photo(@section, position: 1)
+    analyzed.image.blob.analyze
+    create_photo(@section, position: 2, fixture: "portrait.jpg")
+
+    get gallery_section_path(@gallery, @section)
+
+    assert_response :success
+    photos = JSON.parse(response.body[%r{data-lightbox-target="manifest">(.+?)</script>}m, 1])["photos"]
+    assert_predicate photos.first["blurhash"], :present?
+    assert_nil photos.second["blurhash"]
+    assert_predicate photos.second["color"], :present?
+  end
 end

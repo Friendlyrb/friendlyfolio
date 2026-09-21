@@ -137,8 +137,8 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); }
 /* Placeholder and photo share one grid cell, so the colour block sits exactly
    where the photo lands and a slow load is a rectangle, not a hole. */
 .lightbox__figure > * { grid-area: 1 / 1; }
-.lightbox__placeholder { width: min(96vw, calc(86vh * var(--r, 1.5))); aspect-ratio: var(--r, 1.5);
-  background: var(--c, #222); border-radius: 2px; }
+.lightbox__placeholder { display: block; width: min(96vw, calc(86vh * var(--r, 1.5)));
+  aspect-ratio: var(--r, 1.5); border-radius: 2px; }
 .lightbox__figure.is-loading img { visibility: hidden; }
 .lightbox__figure:not(.is-loading) .lightbox__placeholder { display: none; }
 .lightbox__figure img { max-width: 96vw; max-height: 86vh; object-fit: contain; }

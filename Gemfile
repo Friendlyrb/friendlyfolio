@@ -31,6 +31,9 @@ gem "bootsnap", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# Blurhash placeholders for the lightbox, from the blob metadata
+gem "active_storage-blurhash"
+
 # S3-compatible client for Cloudflare R2, which backs Active Storage in production
 gem "aws-sdk-s3", require: false
 

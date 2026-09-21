@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { decode } from "blurhash"
 
 // Opening, stepping through and deep-linking photos. Everything the native
 // <dialog> already provides -- focus trapping, Escape, the backdrop, aria-modal
@@ -58,11 +59,10 @@ export default class extends Controller {
     this.imageTarget.src = photo.webp
     // The <img> keeps painting the previous photo until the new bytes decode,
     // so reopening on another tile flashes whatever was last open. Hold the
-    // photo's box in its dominant colour until decode() says the new one is
-    // ready to paint; a swap that overtakes it rejects, and that newer show()
-    // reveals in its turn.
-    this.placeholderTarget.style.setProperty("--r", photo.r)
-    this.placeholderTarget.style.setProperty("--c", photo.color || "#222")
+    // photo's box with its blurhash until decode() says the new one is ready to
+    // paint; a swap that overtakes it rejects, and that newer show() reveals in
+    // its turn.
+    this.paintPlaceholder(photo)
     this.figureTarget.classList.add("is-loading")
     this.imageTarget.decode().then(() => this.figureTarget.classList.remove("is-loading"), () => {})
     this.imageTarget.alt = photo.alt
@@ -76,6 +76,25 @@ export default class extends Controller {
 
     this.preload(i + 1)
     this.preload(i - 1)
+  }
+
+  // Decoded at 32px and blown up by CSS: the upscale is the blur, so this
+  // costs a few hundred pixels rather than a full-size decode. A photo whose
+  // blob has not been analyzed has no hash, and the dominant colour behind the
+  // canvas carries the placeholder on its own.
+  paintPlaceholder(photo) {
+    const canvas = this.placeholderTarget
+    canvas.style.setProperty("--r", photo.r)
+    canvas.style.background = photo.color || "#222"
+
+    // Assigning width clears whatever the previous photo painted.
+    const w = photo.blurhash ? 32 : 1
+    const h = photo.blurhash ? Math.max(1, Math.round(32 / photo.r)) : 1
+    canvas.width = w
+    canvas.height = h
+    if (!photo.blurhash) return
+
+    canvas.getContext("2d").putImageData(new ImageData(decode(photo.blurhash, w, h), w, h), 0, 0)
   }
 
   preload(i) {
