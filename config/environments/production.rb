@@ -24,6 +24,12 @@ Rails.application.configure do
   # Photos live in Cloudflare R2, not on the box (see config/storage.yml).
   config.active_storage.service = :r2
 
+  # The bucket's custom domain, which Cloudflare fronts with its CDN. Set, every
+  # image URL points straight at it and Puma never serves a byte. Unset, URLs
+  # fall back to the Rails proxy, so a missing env var degrades instead of
+  # emitting broken links.
+  config.x.image_host = ENV["R2_PUBLIC_HOST"].presence
+
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true
 

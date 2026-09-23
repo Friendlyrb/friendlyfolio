@@ -19,7 +19,7 @@ class SectionsController < ApplicationController
   end
 
   def paginated_photos
-    scope = @section.photos.displayable.with_attached_image
+    scope = @section.photos.displayable.with_images
     return scope if scope.count <= Section::PER_PAGE
 
     scope.offset((@page - 1) * Section::PER_PAGE).limit(Section::PER_PAGE)

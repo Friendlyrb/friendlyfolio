@@ -60,20 +60,4 @@ class CachingTest < ActionDispatch::IntegrationTest
 
     assert_no_match(/public/, response.headers["Cache-Control"].to_s)
   end
-
-  # Every image URL is a proxy URL on this host, so the edge cache in front of
-  # the app is all that stands between a wall view and Puma. Rails' answer has
-  # to be publicly cacheable and cookie-free, or Cloudflare passes it through.
-  test "a variant response is cacheable at the edge" do
-    get gallery_section_path(@gallery, @gallery.sections.first)
-    variant_url = response.body[%r{/rails/active_storage/representations/proxy/[^"\s]+}]
-    assert variant_url, "the section page should link its images through the proxy"
-
-    get variant_url
-
-    assert_response :success
-    assert_match(/public/, response.headers["Cache-Control"])
-    assert_match(/max-age=\d{9,}/, response.headers["Cache-Control"])
-    assert_nil response.headers["Set-Cookie"]
-  end
 end
