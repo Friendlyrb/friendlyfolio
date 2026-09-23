@@ -395,10 +395,9 @@ module PhotoTasks
   end
 
   def gallery_photos(gallery)
-    # Photo.with_images is the model's own eager load of blobs and variant
-    # records; verify checks nine of them per photo and would otherwise issue a
-    # lookup for each.
-    Photo.with_images
+    # with_attached_image eager-loads blobs and variant records; verify checks
+    # nine of them per photo and would otherwise issue a lookup for each.
+    Photo.with_attached_image
          .joins(:section)
          .where(sections: { gallery_id: gallery.id })
          .includes(:section)

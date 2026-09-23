@@ -41,7 +41,7 @@
         <%= render "sections/frame",
                    gallery: @gallery,
                    section: section,
-                   photos: section.photos.displayable.with_images.limit(Section::PER_PAGE),
+                   photos: section.photos.displayable.with_attached_image.limit(Section::PER_PAGE),
                    page: 1,
                    photo: nil %>
       <% else %>
