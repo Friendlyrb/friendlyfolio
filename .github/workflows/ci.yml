@@ -28,7 +28,7 @@ jobs:
     container: ruby:3.4.5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: vendor/bundle
           key: gems-ruby-3.4.5-${{ hashFiles('Gemfile.lock') }}
@@ -42,7 +42,7 @@ jobs:
     container: ruby:3.4.5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: vendor/bundle
           key: gems-ruby-3.4.5-${{ hashFiles('Gemfile.lock') }}
@@ -70,7 +70,7 @@ jobs:
           apt-get update -qq
           apt-get install -y -qq --no-install-recommends libvips42 libheif-plugin-aomenc libheif-plugin-dav1d
       - uses: actions/checkout@v5
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: vendor/bundle
           key: gems-ruby-3.4.5-${{ hashFiles('Gemfile.lock') }}
@@ -87,7 +87,7 @@ jobs:
     container: ruby:3.4.5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: vendor/bundle
           key: gems-ruby-3.4.5-${{ hashFiles('Gemfile.lock') }}
