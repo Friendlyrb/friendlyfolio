@@ -32,6 +32,14 @@ class GpsGateTest < ActiveSupport::TestCase
     end
   end
 
+  test "GPS in a UTF-16 XMP packet is detected too" do
+    image = Object.new
+    def image.get_fields = [ "xmp-data" ]
+    def image.get(_) = "<exif:GPSLatitude>45</exif:GPSLatitude>".encode("UTF-16LE").b
+
+    assert ImageMetadata.located?(image)
+  end
+
   test "a clean photo is not located" do
     assert_not ImageMetadata.located?(Vips::Image.new_from_file(Rails.root.join("test/fixtures/files/landscape.jpg").to_s))
   end

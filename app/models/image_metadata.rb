@@ -10,7 +10,9 @@ module ImageMetadata
   # libvips hands XMP over as one opaque packet ("xmp-data") rather than as
   # fields, so GPS written only there -- which `exiftool -gps:all=` leaves
   # behind -- has to be found in the packet itself.
-  XMP_GPS = /GPS(?:Latitude|Longitude)/
+  # Case-insensitive, and matched after dropping NUL bytes so a UTF-16 packet
+  # reads the same as a UTF-8 one.
+  XMP_GPS = /gps\s*(?:lat|long)/i
 
   module_function
 
@@ -42,7 +44,7 @@ module ImageMetadata
     fields = image.get_fields
     return true if fields.grep(GPS_FIELDS).any?
 
-    fields.include?("xmp-data") && image.get("xmp-data").to_s.b.match?(XMP_GPS)
+    fields.include?("xmp-data") && image.get("xmp-data").to_s.b.delete("\0").match?(XMP_GPS)
   rescue StandardError
     true
   end

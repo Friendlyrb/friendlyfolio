@@ -29,17 +29,29 @@ class HardeningTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
   end
 
-  test "the sign-in throttles count every format of the sign-in path" do
+  test "the early sign-in throttle counts every spelling of the sign-in path" do
     by_ip = Rack::Attack.throttles["logins/ip"]
-    by_email = Rack::Attack.throttles["logins/email"]
 
-    %w[/users/sign_in /users/sign_in.html /users/sign_in.json].each do |path|
-      env = Rack::MockRequest.env_for(path, method: "POST", params: { user: { email: " Admin@Example.test " } }, "REMOTE_ADDR" => "203.0.113.9")
+    %w[/users/sign_in /users/sign_in.html /users/sign_in/ //users//sign_in].each do |path|
+      # PATH_INFO set directly: env_for would parse "//users" as a host.
+      env = Rack::MockRequest.env_for("/", method: "POST", "REMOTE_ADDR" => "203.0.113.9").merge("PATH_INFO" => path)
       request = Rack::Attack::Request.new(env)
 
       assert_equal "203.0.113.9", by_ip.block.call(request), path
-      assert_equal "admin@example.test", by_email.block.call(request), path
     end
+  end
+
+  test "sign-in is limited per account, including JSON bodies" do
+    Users::SessionsController::LOGIN_ATTEMPTS.clear
+    body = { user: { email: "Admin@FriendlyRB.com ", password: "wrong" } }
+
+    # Spread across addresses, so only the per-account limit can trip.
+    10.times { |i| post user_session_path, params: body, as: :json, headers: { "REMOTE_ADDR" => "203.0.113.#{i}" } }
+    post user_session_path, params: body, as: :json, headers: { "REMOTE_ADDR" => "203.0.113.99" }
+
+    assert_response :too_many_requests
+  ensure
+    Users::SessionsController::LOGIN_ATTEMPTS.clear
   end
 
   test "sign-in has no format variants" do
