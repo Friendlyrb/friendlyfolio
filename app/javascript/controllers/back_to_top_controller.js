@@ -23,6 +23,8 @@ export default class extends Controller {
 
   scroll() {
     window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
-    document.getElementById("main")?.focus({ preventScroll: true })
+    // As on friendlyrb.com: keyboard focus lands on the first link at the top,
+    // not left behind at the bottom of the page.
+    document.querySelector("nav a, main a")?.focus({ preventScroll: true })
   }
 }

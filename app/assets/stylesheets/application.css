@@ -205,7 +205,8 @@ main:focus { outline: none; }
   transition: opacity 200ms ease, transform 200ms ease, visibility 200ms, background-color 150ms ease;
 }
 .back-to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
-.back-to-top:hover { background: var(--color-red-text); }
+/* Tailwind's red-500, as on friendlyrb.com. An icon, not text, so 3:1 is the bar. */
+.back-to-top:hover { background: #fb2c36; }
 .back-to-top__icon { width: 1.5rem; height: 1.5rem; }
 
 /*
