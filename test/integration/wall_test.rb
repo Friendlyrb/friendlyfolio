@@ -58,16 +58,25 @@ class WallTest < ActionDispatch::IntegrationTest
     assert_no_match(/class="tile"/, response.body)
   end
 
+  # Measured as growth, not a total: the page's fixed parts (the hero, the
+  # nav) cost the same few queries at any size, and what must not happen is a
+  # query for every tile.
   test "rendering many tiles does not issue a query per tile" do
-    20.times { |i| create_photo(@section, position: i + 1) }
-
-    queries = 0
-    counter = ->(*, payload) { queries += 1 unless payload[:name].to_s.include?("SCHEMA") }
-    ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
-      get gallery_section_path(@gallery, @section)
+    count_queries = lambda do
+      queries = 0
+      counter = ->(*, payload) { queries += 1 unless payload[:name].to_s.include?("SCHEMA") }
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        get gallery_section_path(@gallery, @section)
+      end
+      queries
     end
 
-    assert_operator queries, :<, 20, "wall issued #{queries} queries for 20 tiles"
+    2.times { |i| create_photo(@section, position: i + 1) }
+    few = count_queries.call
+    18.times { |i| create_photo(@section, position: i + 3) }
+    many = count_queries.call
+
+    assert_operator many - few, :<=, 2, "#{few} queries for 2 tiles became #{many} for 20"
   end
 
   # The gallery page loads every section after the first through a turbo-frame.

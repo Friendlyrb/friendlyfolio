@@ -44,10 +44,11 @@ class SeoTest < ActionDispatch::IntegrationTest
     create_photo(gallery.sections.first)
 
     get gallery_path(gallery)
-    gallery_h1 = head_value(%r{<h1>(.*?)</h1>}m)
+    gallery_h1 = head_value(%r{<h1[^>]*>(.*?)</h1>}m)
     get gallery_section_path(gallery, gallery.sections.first)
 
-    assert_not_equal gallery_h1, head_value(%r{<h1>(.*?)</h1>}m)
+    assert gallery_h1.present?
+    assert_not_equal gallery_h1, head_value(%r{<h1[^>]*>(.*?)</h1>}m)
   end
 
   test "structured data links the conference organisation and the breadcrumb trail" do

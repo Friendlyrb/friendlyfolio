@@ -24,7 +24,7 @@
   <%= render "sections/frame", gallery: @gallery, section: @section, photos: @photos, page: @page, photo: @photo %>
 <% else %>
   <article class="gallery" style="--accent: <%= gallery_accent(@gallery) %>">
-    <%= render "galleries/cover", gallery: @gallery, section: @section %>
+    <%= render "galleries/hero", gallery: @gallery, section: @section %>
 
     <section class="gallery-section">
       <h2><%= @section.title %></h2>

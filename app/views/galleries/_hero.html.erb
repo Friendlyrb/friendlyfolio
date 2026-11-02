@@ -1,0 +1,61 @@
+<%#
+  The edition hero, after friendlyrb.com's edition pages: a handwritten
+  edition label, the year drawn in pixels in the edition's colour, and three
+  polaroids tossed onto the page -- the cover in front, taped down. Each
+  polaroid opens its photo.
+
+  A section page names its section in the heading for screen readers and
+  search engines, so no two pages share an h1; the visible h2 below says it.
+%>
+<% name, year = edition_title_parts(gallery) %>
+<% polaroids = hero_polaroids(gallery) %>
+<% photo_count = gallery.photos_count %>
+<% section_count = gallery.sections.size %>
+<header class="edition-hero">
+  <div class="edition-hero__text">
+    <% if (label = edition_label(gallery)) %>
+      <p class="eyebrow"><%= label %></p>
+    <% end %>
+    <h1 class="edition-hero__title">
+      <span class="edition-hero__name"><%= name %></span>
+      <% if year %>
+        <span class="visually-hidden"> <%= year %></span>
+        <%= pixel_year(year, class_name: "edition-hero__year") %>
+      <% end %>
+      <% if local_assigns[:section] %><span class="visually-hidden">: <%= section.title %></span><% end %>
+    </h1>
+    <p class="edition-hero__meta">
+      <% if gallery.held_on %>
+        <time datetime="<%= gallery.held_on.iso8601 %>"><%= gallery.held_on.strftime("%-d %B %Y") %></time>.
+      <% end %>
+      <%= pluralize(photo_count, "photo") %><%= " across #{section_count} sections" if section_count > 1 %>.
+    </p>
+    <% if gallery.description.present? %>
+      <p class="edition-hero__description"><%= gallery.description %></p>
+    <% end %>
+  </div>
+
+  <% if polaroids.any? %>
+    <ul class="edition-hero__polaroids">
+      <% polaroids.each_with_index do |photo, index| %>
+        <li class="polaroid edition-polaroid edition-polaroid--<%= index %>" style="--i: <%= index %>; --tilt: <%= [ -3, 6, -7 ][index] %>deg">
+          <div class="polaroid-toss">
+            <a class="polaroid-card" href="<%= gallery_section_photo_path(gallery, photo.section, photo) %>">
+              <% if index.zero? %><span class="polaroid-tape" aria-hidden="true"></span><% end %>
+              <span class="polaroid-photo" style="background: <%= photo.dominant_color %>">
+                <%= render "photos/picture",
+                           photo: photo,
+                           variants: %i[wall_avif wall_webp],
+                           sizes: "(min-width: 64rem) 20rem, 60vw",
+                           eager: index.zero?,
+                           priority: index.zero?,
+                           alt: "#{photo.section.title}. #{gallery.title}" %>
+              </span>
+              <span class="polaroid-caption"><%= polaroid_caption(photo) %></span>
+            </a>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</header>

@@ -284,33 +284,87 @@ main:focus { outline: none; }
 
 .wall-placeholder { min-height: 200px; }
 
-/* Cover */
-/* Deliberately short of a fold: moving between sections must land you on the
-   wall with the nav in view, not on a full-screen cover with no orientation. */
-.cover {
-  position: relative; height: 42svh; min-height: 15rem; overflow: hidden;
-  max-width: 72rem; margin: 2rem auto 0;
-  border: 2px solid var(--color-brand); border-radius: 1.5rem;
-  box-shadow: 9px 9px 0 var(--accent);
+/*
+  Polaroids, as on friendlyrb.com's heroes: a white card with a handwritten
+  caption, tossed onto the page and swaying a little. Floating things keep
+  soft shadows there, so these do too.
+*/
+.polaroid-card {
+  position: relative; display: block; padding: 0.6rem 0.6rem 0;
+  background: #fff; border-radius: 4px; color: var(--color-brand); text-decoration: none;
+  box-shadow: 0 1px 2px rgb(1 43 127 / 0.12), 0 10px 24px -6px rgb(1 43 127 / 0.28);
+  transition: scale 300ms cubic-bezier(0.34, 1.56, 0.64, 1), translate 300ms ease, box-shadow 300ms ease;
 }
-@media (max-width: 1240px) { .cover { margin-left: 1rem; margin-right: 1rem; } }
-@media (max-width: 600px) { .cover { border-radius: 1rem; box-shadow: 6px 6px 0 var(--accent); } }
-.cover picture, .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.polaroid-photo { display: block; aspect-ratio: 1; overflow: hidden; border-radius: 2px; }
+.polaroid-photo picture, .polaroid-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.polaroid-caption {
+  display: block; padding: 0.4rem 0.25rem 0.65rem; text-align: center;
+  font-family: var(--font-handwriting); font-size: 1.6rem; line-height: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* A strip of tape in the edition's colour, holding the photo down. */
+.polaroid-tape {
+  position: absolute; top: -0.75rem; left: 50%; z-index: 1;
+  width: 5.5rem; height: 1.6rem; translate: -50% 0; rotate: 4deg;
+  background: color-mix(in srgb, var(--accent) 75%, transparent);
+  pointer-events: none;
+}
+.polaroid-toss {
+  animation: hero-toss 800ms cubic-bezier(0.34, 1.3, 0.64, 1) calc(var(--toss-start, 0.35s) + var(--i) * 110ms) backwards;
+}
+@keyframes hero-toss {
+  from { opacity: 0; transform: translateY(-60px) scale(1.25) rotate(calc(var(--tilt) * -3)); }
+}
+@keyframes hero-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(2deg); }
+}
 
-/* Not decoration: the title sits over whatever photo the admin chose. */
-.cover__scrim {
-  position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgb(0 0 0 / 0.45) 0%, rgb(0 0 0 / 0.1) 40%, rgb(0 0 0 / 0.6) 100%);
+/*
+  The year drawn in the logo's pixels (EditionHelper#pixel_year), built pixel
+  by pixel, column by column, in the edition's colour.
+*/
+.pixel-year { overflow: visible; }
+.pixel-year .pixel-face { fill: var(--accent); }
+.pixel-year .pixel-shadow { fill: var(--color-brand); }
+.pixel-year .pixel-bit {
+  transform-box: fill-box; transform-origin: center;
+  animation: pixel-drop 650ms cubic-bezier(0.34, 1.45, 0.64, 1) calc(150ms + var(--c) * 30ms + var(--r) * 12ms) backwards;
+}
+@keyframes pixel-drop {
+  0% { opacity: 0; transform: translate(calc(var(--dx) * 1px), -9px) rotate(calc(var(--dx) * 40deg)) scale(0.4); }
+  40% { opacity: 1; }
 }
 
-.cover__text {
-  position: absolute; left: 0; right: 0; bottom: 2rem;
-  text-align: center; color: #fff;
-  text-shadow: 0 1px 12px rgb(0 0 0 / 0.5);
+/*
+  Edition hero (gallery and section pages), after friendlyrb.com's edition
+  pages: the label, the name, the year in pixels, then three tossed polaroids.
+*/
+.edition-hero {
+  max-width: 74rem; margin: 0 auto; padding: 2.5rem 1rem 0;
+  display: grid; gap: 2.5rem; align-items: center; overflow-x: clip;
 }
-.cover__text { padding: 0 1rem; }
-.cover__text h1 { color: #fff; font-size: clamp(2rem, 6vw, 3.75rem); line-height: 1.05; margin: 0; }
-.cover__text time { display: block; font-family: var(--font-handwriting); font-size: 2rem; line-height: 1; color: var(--color-yellow); }
+@media (min-width: 64rem) { .edition-hero { grid-template-columns: 1fr 1fr; gap: 3rem; padding-top: 3rem; } }
+.edition-hero__title { margin: 0; font-size: clamp(2.5rem, 6vw, 3.75rem); line-height: 1; }
+.edition-hero__name { display: block; }
+.edition-hero__year { display: block; width: auto; height: clamp(4.25rem, 12vw, 7.5rem); margin-top: 0.85rem; }
+.edition-hero__meta { margin: 1.75rem 0 0; font-size: 1.125rem; color: var(--color-muted); }
+.edition-hero__description { margin: 0.75rem 0 0; max-width: 36rem; line-height: 1.6; color: var(--color-muted); }
+
+.edition-hero__polaroids { position: relative; height: 21rem; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 40rem) { .edition-hero__polaroids { height: 25rem; } }
+.edition-polaroid { position: absolute; width: 10.5rem; }
+@media (min-width: 40rem) { .edition-polaroid { width: 13rem; } }
+.edition-polaroid .polaroid-card { rotate: var(--tilt); animation: hero-sway calc(6s + var(--i) * 0.7s) ease-in-out calc(2.2s + var(--i) * -1.3s) infinite; }
+.edition-polaroid:hover, .edition-polaroid:focus-within { z-index: 10; }
+.edition-polaroid:hover .polaroid-card, .edition-polaroid:focus-within .polaroid-card {
+  scale: 1.05; translate: 0 -6px;
+  box-shadow: 0 2px 4px rgb(1 43 127 / 0.14), 0 22px 40px -10px rgb(1 43 127 / 0.35);
+}
+.edition-polaroid--0 { z-index: 3; left: 50%; top: 50%; translate: -50% -50%; width: 12.5rem; }
+@media (min-width: 40rem) { .edition-polaroid--0 { width: 15.5rem; } }
+.edition-polaroid--1 { z-index: 2; left: 2%; top: 0; }
+.edition-polaroid--2 { z-index: 1; right: 2%; bottom: 0; }
 
 .gallery-section h2 a { color: inherit; text-decoration: none; }
 .gallery-section h2 a:hover { text-decoration: underline; text-decoration-color: var(--color-red); text-underline-offset: 6px; }
@@ -321,15 +375,96 @@ main:focus { outline: none; }
 .gallery-section h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin: 0 0 0.25rem; }
 .section-description { color: var(--color-muted); margin: 0 0 1.25rem; max-width: 42rem; }
 
-/* Index: the friendlyrb.com section header over a dotted-paper background. */
-.page-header {
-  text-align: center; padding: 4.5rem 1rem 3rem;
-  background-image: radial-gradient(rgb(1 43 127 / 0.07) 1px, transparent 1px);
-  background-size: 18px 18px;
-}
+/*
+  Index hero: the title and a link per edition beside a pile of polaroids
+  that deals itself (deck controller). --px/--py come from the parallax
+  controller; the pile and the loose pixels drift by their own depth.
+*/
 .eyebrow { font-family: var(--font-handwriting); font-size: 2rem; line-height: 1; color: var(--color-red-text); margin: 0 0 0.5rem; }
-.page-header h1 { font-size: clamp(2.5rem, 7vw, 3.75rem); line-height: 1.05; margin: 0 0 1rem; }
-.lede { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; max-width: 40rem; margin: 0 auto; }
+.index-hero {
+  --px: 0; --py: 0;
+  max-width: 74rem; margin: 0 auto 1.5rem; padding: 2.5rem 1rem 1rem;
+  display: grid; gap: 1.5rem; align-items: center; overflow-x: clip;
+}
+@media (min-width: 64rem) { .index-hero { grid-template-columns: 1fr 1fr; gap: 3rem; padding-top: 3.5rem; } }
+.index-hero__title { margin: 0; font-size: clamp(2.75rem, 7vw, 4.5rem); line-height: 1.02; }
+.index-hero__lede { margin: 1.25rem 0 0; max-width: 34rem; font-size: 1.125rem; line-height: 1.6; color: var(--color-muted); }
+
+/* One link per edition, shadowed in its colour, as the cards below are. */
+.edition-links { display: flex; flex-wrap: wrap; gap: 0.875rem; margin: 2rem 0 0; padding: 0; list-style: none; }
+.edition-link {
+  display: inline-flex; align-items: center; min-height: 3rem; padding: 0 1.5rem;
+  background: #fff; border: 2px solid var(--color-brand); border-radius: 999px;
+  font-family: var(--font-heading); font-size: 1.125rem; font-weight: 700; color: var(--color-brand); text-decoration: none;
+  box-shadow: 3px 3px 0 var(--accent); transition: translate 200ms ease, box-shadow 200ms ease;
+}
+.edition-link:hover { translate: -2px -2px; box-shadow: 5px 5px 0 var(--accent); }
+
+.deck { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; padding: 1.5rem 0 0.5rem; }
+/* friendlyrb.com's faint pixel grid, fading out towards the edges. */
+.deck::before {
+  content: ""; position: absolute; inset: -2rem -1rem; z-index: -1;
+  background-image:
+    linear-gradient(to right, rgb(1 43 127 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(1 43 127 / 0.06) 1px, transparent 1px);
+  background-size: 32px 32px; background-position: center;
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 45%, black 25%, transparent 75%);
+}
+.deck__pile {
+  --w: 14.5rem;
+  position: relative; width: var(--w); height: calc(var(--w) + 3.1rem);
+  margin: 0; padding: 0; list-style: none;
+  translate: calc(var(--px) * -10px) calc(var(--py) * -10px);
+  transition: translate 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (min-width: 40rem) { .deck__pile { --w: 17.5rem; } }
+.deck__card {
+  position: absolute; top: 0; left: 0; width: 100%;
+  z-index: var(--z, 1);
+  transform: translate(var(--x), var(--y)) rotate(var(--tilt));
+  opacity: 0; transition: opacity 450ms ease;
+}
+.deck__card[data-depth="0"], .deck__card[data-depth="1"],
+.deck__card[data-depth="2"], .deck__card[data-depth="3"] { opacity: 1; }
+/* Only the photo on top is taped down; tape on every card piles into a smear. */
+.deck__card .polaroid-tape { opacity: 0; transition: opacity 300ms ease; }
+.deck__card[data-depth="0"]:not(.is-dealt) .polaroid-tape { opacity: 1; }
+.deck__card .polaroid-card { animation: hero-toss 800ms cubic-bezier(0.34, 1.3, 0.64, 1) calc(0.35s + var(--i) * 110ms) backwards; }
+.deck__card[data-depth="0"]:hover .polaroid-card,
+.deck__card[data-depth="0"]:focus-within .polaroid-card {
+  scale: 1.03; translate: 0 -6px;
+  box-shadow: 0 2px 4px rgb(1 43 127 / 0.14), 0 22px 40px -10px rgb(1 43 127 / 0.35);
+}
+/* Dealt: off to the side, then tucked under the pile. z-index steps down
+   halfway, while the card is clear of the others. */
+.deck__card.is-dealt { animation: deck-deal 950ms cubic-bezier(0.45, 0.05, 0.3, 1); }
+@keyframes deck-deal {
+  0% { z-index: 50; }
+  45% { z-index: 50; transform: translate(calc(var(--x) + 105%), calc(var(--y) - 6%)) rotate(calc(var(--tilt) + 12deg)); }
+  55% { z-index: 0; }
+  100% { z-index: 0; transform: translate(var(--x), var(--y)) rotate(var(--tilt)); }
+}
+.deck__toggle {
+  position: relative; z-index: 1; display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.1rem;
+  background: #fff; border: 2px solid var(--color-brand); border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: 0.9375rem; font-weight: 600; color: var(--color-brand);
+}
+.deck__toggle:hover { background: rgb(1 43 127 / 0.06); }
+.deck__toggle[hidden] { display: none; }
+.deck__toggle-play, .deck.is-paused .deck__toggle-pause { display: none; }
+.deck.is-paused .deck__toggle-play { display: inline; }
+/* Loose pixels around the pile, as around friendlyrb.com's ruby. */
+.deck-pixel {
+  position: absolute; left: var(--x); top: var(--y); width: 12px; height: 12px; background: var(--color);
+  translate: calc(var(--px) * var(--depth) * -1px) calc(var(--py) * var(--depth) * -1px);
+  transition: translate 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: hero-float calc(5s + var(--i) * 0.6s) ease-in-out calc(var(--i) * -0.9s) infinite;
+}
+.deck-pixel:nth-of-type(even) { width: 9px; height: 9px; }
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(12deg); }
+}
 
 .gallery-index { list-style: none; display: grid; gap: 2.5rem; padding: 1rem 1.5rem; margin: 0 auto; max-width: 72rem;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
@@ -344,6 +479,7 @@ main:focus { outline: none; }
 .gallery-card__cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: scale 400ms cubic-bezier(0.22, 1, 0.36, 1); }
 .gallery-card a:hover .gallery-card__cover img { scale: 1.04; }
 .gallery-card__body { display: block; padding: 1.25rem 1.5rem 1.5rem; }
+.gallery-card__edition { display: block; margin-bottom: 0.25rem; font-family: var(--font-handwriting); font-size: 1.6rem; line-height: 1; color: var(--color-red-text); }
 .gallery-card__title { display: flex; justify-content: space-between; gap: 1rem; font-size: 1.5rem; font-weight: 700; }
 .gallery-card__arrow { color: var(--color-red-text); transition: translate 200ms ease; }
 .gallery-card a:hover .gallery-card__arrow { translate: 4px 0; }

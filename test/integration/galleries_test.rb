@@ -22,9 +22,11 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_match new.title, response.body
+    # The gallery list, not the page: the hero's photo deck is shuffled.
+    list = response.body[%r{<ul class="gallery-index".*?</ul>}m]
+    assert_match new.title, list
     assert_no_match(/Friendly\.rb draft/, response.body)
-    assert_operator response.body.index(new.title), :<, response.body.index(old.title)
+    assert_operator list.index(new.title), :<, list.index(old.title)
   end
 
   test "a gallery page renders its cover, title and date" do
@@ -141,7 +143,7 @@ class GalleriesTest < ActionDispatch::IntegrationTest
         headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(section) }
 
     assert_response :success
-    assert_no_match(/class="cover"/, response.body, "a frame response must not repeat the cover")
+    assert_no_match(/class="edition-hero"/, response.body, "a frame response must not repeat the hero")
     assert_no_match(/class="site-nav"/, response.body, "a frame response must not repeat the nav")
   end
 
