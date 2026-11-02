@@ -9,13 +9,34 @@ export default class extends Controller {
   connect() {
     if (!this.dismissAfterValue) return
 
-    this.start = () => { this.timer = setTimeout(() => this.dismiss(), this.dismissAfterValue) }
-    this.pause = () => clearTimeout(this.timer)
-    this.element.addEventListener("mouseenter", this.pause)
-    this.element.addEventListener("mouseleave", this.start)
-    this.element.addEventListener("focusin", this.pause)
-    this.element.addEventListener("focusout", this.start)
-    this.start()
+    // Hover and focus hold the notice independently: leaving one must not
+    // restart the timer while the other still holds it.
+    this.hovering = false
+    this.focused = false
+    this.hold = (key, value) => {
+      this[key] = value
+      this.schedule()
+    }
+    this.onEnter = () => this.hold("hovering", true)
+    this.onLeave = () => this.hold("hovering", false)
+    this.onFocusIn = () => this.hold("focused", true)
+    this.onFocusOut = (event) => {
+      if (!this.element.contains(event.relatedTarget)) this.hold("focused", false)
+    }
+    this.element.addEventListener("mouseenter", this.onEnter)
+    this.element.addEventListener("mouseleave", this.onLeave)
+    this.element.addEventListener("focusin", this.onFocusIn)
+    this.element.addEventListener("focusout", this.onFocusOut)
+    this.schedule()
+  }
+
+  // Always clears the previous timer first, so repeated hovers never leave an
+  // older one running.
+  schedule() {
+    clearTimeout(this.timer)
+    if (!this.hovering && !this.focused) {
+      this.timer = setTimeout(() => this.dismiss(), this.dismissAfterValue)
+    }
   }
 
   disconnect() {

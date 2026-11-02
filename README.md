@@ -71,7 +71,7 @@ echo "ADMIN_PASSWORD=$(openssl rand -base64 18)" >> .env
 docker compose up --build
 ```
 
-Then open **<http://localhost:3000>**. The entrypoint prepares all three databases and seeds the admin.
+Then open **<http://localhost:3000>**. The entrypoint prepares all three databases and seeds the admin. The port is bound to `127.0.0.1` only: Compose serves plain HTTP, so it is not exposed to the rest of the network.
 
 Compose runs the production build with a few local-only switches. **None of them belong on a public deployment:**
 

@@ -36,11 +36,13 @@ export default class extends Controller {
     document.addEventListener("visibilitychange", this.onVisibility)
 
     this.toggleTarget.hidden = false
+    this.element.classList.add("is-live")
     this.render()
     this.schedule()
   }
 
   disconnect() {
+    this.element.classList.remove("is-live")
     clearTimeout(this.timer)
     clearTimeout(this.fallback)
     if (!this.onEnter) return

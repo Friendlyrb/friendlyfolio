@@ -355,7 +355,9 @@ main:focus { outline: none; }
 @media (min-width: 40rem) { .edition-hero__polaroids { height: 25rem; } }
 .edition-polaroid { position: absolute; width: 10.5rem; }
 @media (min-width: 40rem) { .edition-polaroid { width: 13rem; } }
-.edition-polaroid .polaroid-card { rotate: var(--tilt); animation: hero-sway calc(6s + var(--i) * 0.7s) ease-in-out calc(2.2s + var(--i) * -1.3s) infinite; }
+/* One sway after the toss lands, done within five seconds of load: there is
+   no pause control on these pages, so nothing may keep moving (WCAG 2.2.2). */
+.edition-polaroid .polaroid-card { rotate: var(--tilt); animation: hero-sway 3s ease-in-out calc(1.4s + var(--i) * 0.15s) 1; }
 .edition-polaroid:hover, .edition-polaroid:focus-within { z-index: 10; }
 .edition-polaroid:hover .polaroid-card, .edition-polaroid:focus-within .polaroid-card {
   scale: 1.05; translate: 0 -6px;
@@ -458,6 +460,11 @@ main:focus { outline: none; }
   position: absolute; left: var(--x); top: var(--y); width: 12px; height: 12px; background: var(--color);
   translate: calc(var(--px) * var(--depth) * -1px) calc(var(--py) * var(--depth) * -1px);
   transition: translate 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* They float only while the deck is dealing (.is-live, set by the deck
+   controller), so the Pause button stops them too, and a deck too small to
+   deal -- or without JS -- has nothing moving and needs no control. */
+.deck.is-live:not(.is-paused) .deck-pixel {
   animation: hero-float calc(5s + var(--i) * 0.6s) ease-in-out calc(var(--i) * -0.9s) infinite;
 }
 .deck-pixel:nth-of-type(even) { width: 9px; height: 9px; }

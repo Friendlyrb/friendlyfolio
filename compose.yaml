@@ -36,8 +36,10 @@ x-app: &app
 services:
   web:
     <<: *app
+    # Loopback only: Compose serves plain HTTP, so sign-in and the admin must
+    # not be reachable from the rest of the network.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     healthcheck:
       test: [ "CMD", "curl", "-fsS", "http://localhost:3000/up" ]
       interval: 10s
