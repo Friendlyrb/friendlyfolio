@@ -78,6 +78,17 @@ class SeoTest < ActionDispatch::IntegrationTest
     Rails.configuration.x.canonical_url = nil
   end
 
+  test "a doubled leading slash cannot move the canonical to another host" do
+    gallery = create_gallery
+    create_photo(gallery.sections.first)
+
+    get "//#{gallery.slug}"
+
+    assert_response :success
+    assert_equal "http://www.example.com/#{gallery.slug}", head_value(/<link rel="canonical" href="([^"]+)"/)
+    assert_equal "http://www.example.com/#{gallery.slug}", head_value(/property="og:url" content="([^"]+)"/)
+  end
+
   test "an admin preview of an unpublished gallery is noindex" do
     gallery = create_gallery(published: false)
     create_photo(gallery.sections.first)

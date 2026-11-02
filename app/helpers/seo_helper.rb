@@ -57,9 +57,18 @@ module SeoHelper
     Rails.configuration.x.canonical_url.presence || request.base_url
   end
 
-  def absolute_url(path) = URI.join(site_base_url, path).to_s
+  # Concatenation, not URI.join: URI.join reads a path beginning "//" as a
+  # network-path reference and swaps the host. Absolute URLs pass through only
+  # because photo_variant_url returns them for the image host.
+  def absolute_url(path_or_url)
+    return path_or_url if path_or_url.match?(%r{\Ahttps?://}i)
 
-  def canonical_url = absolute_url(seo_value(:canonical_path) || request.path)
+    "#{site_base_url.chomp("/")}/#{path_or_url.sub(%r{\A/+}, "")}"
+  end
+
+  # From the route, never request.path: the router collapses "//2025" to the
+  # /2025 gallery, but request.path keeps the slashes.
+  def canonical_url = absolute_url(seo_value(:canonical_path) || url_for(only_path: true))
 
   def og_image
     photo = seo_value(:image) or return
