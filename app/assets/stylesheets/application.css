@@ -276,12 +276,12 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); color: var(--co
   background: rgb(255 255 255 / 0.12); color: #fff; border: 0; border-radius: 999px;
   padding: 0 1.1rem; font: inherit; font-weight: 600; font-size: 0.9375rem; cursor: pointer; text-decoration: none;
   transition: background-color 150ms ease; }
-.btn:hover { background: var(--color-red); }
+.btn:hover { background: var(--color-red-text); }
 .btn--close { font-size: 1.5rem; line-height: 1; width: 2.75rem; padding: 0; }
 .lightbox__nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgb(255 255 255 / 0.12);
   color: #fff; border: 0; border-radius: 999px; font-size: 2rem; line-height: 1; width: 3rem; height: 3rem; cursor: pointer;
   transition: background-color 150ms ease; }
-.lightbox__nav:hover { background: var(--color-red); }
+.lightbox__nav:hover { background: var(--color-red-text); }
 .lightbox__nav--prev { left: 1rem; }
 .lightbox__nav--next { right: 1rem; }
 .share-fallback { display: block; width: 100%; margin-top: 0.5rem; padding: 0.5rem; }
