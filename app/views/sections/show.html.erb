@@ -21,7 +21,7 @@
 <% if turbo_frame_request? %>
   <%= render "sections/frame", gallery: @gallery, section: @section, photos: @photos, page: @page, photo: @photo %>
 <% else %>
-  <article class="gallery">
+  <article class="gallery" style="--accent: <%= gallery_accent(@gallery) %>">
     <%= render "galleries/cover", gallery: @gallery %>
     <%= render "sections/nav", gallery: @gallery, current: @section %>
 

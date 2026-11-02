@@ -1,17 +1,17 @@
 <% content_for :title, "Friendly.rb photos" %>
 
 <header class="page-header">
-  <h1>Friendly.rb photos</h1>
+  <p class="eyebrow">Relive it</p>
+  <h1>Photo galleries</h1>
   <p class="lede">Every edition, every day, every hallway conversation someone pointed a camera at.</p>
-  <p class="page-header__link"><a href="https://friendlyrb.com">friendlyrb.com</a> &rarr;</p>
 </header>
 
 <ul class="gallery-index" data-controller="blurhash">
   <% @galleries.each do |gallery| %>
-    <li class="gallery-card">
+    <li class="gallery-card" style="--accent: <%= gallery_accent(gallery) %>">
       <a href="<%= gallery_path(gallery) %>">
         <span class="gallery-card__cover"
-              style="background: <%= gallery.cover&.dominant_color || "#1e3a8a" %>"
+              style="background: <%= gallery.cover&.dominant_color || "#012B7F" %>"
               <%= tag.attributes(data: { blurhash: gallery.cover&.blurhash }) if gallery.cover&.blurhash.present? %>>
           <% if gallery.cover %>
             <%= render "photos/picture",
@@ -23,7 +23,7 @@
           <% end %>
         </span>
         <span class="gallery-card__body">
-          <span class="gallery-card__title"><%= gallery.title %></span>
+          <span class="gallery-card__title"><%= gallery.title %> <span class="gallery-card__arrow" aria-hidden="true">&rarr;</span></span>
           <span class="gallery-card__meta">
             <% if gallery.held_on %><time datetime="<%= gallery.held_on.iso8601 %>"><%= gallery.held_on.strftime("%-d %B %Y") %></time> &middot; <% end %>
             <%= pluralize gallery.photos_count, "photo" %>

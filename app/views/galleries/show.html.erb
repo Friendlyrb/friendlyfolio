@@ -23,7 +23,7 @@
   </p>
 <% end %>
 
-<article class="gallery">
+<article class="gallery" style="--accent: <%= gallery_accent(@gallery) %>">
   <%= render "galleries/cover", gallery: @gallery %>
 
   <%= render "sections/nav", gallery: @gallery, current: nil %>

@@ -24,6 +24,15 @@ module ApplicationHelper
     [ rows * 244, 200 ].max
   end
 
+  # The same per-edition colours friendlyrb.com uses for each year's hero and
+  # card, so a gallery reads as the same edition on both sites. It feeds the
+  # hard offset shadows; brand red covers anything that is not an edition.
+  EDITION_ACCENTS = { 2023 => "#FF3A36", 2024 => "#3D7BFF", 2025 => "#FFC53D" }.freeze
+
+  def gallery_accent(gallery)
+    EDITION_ACCENTS.fetch(gallery.held_on&.year, "#FF3A36")
+  end
+
   def page_title
     [ content_for(:title), "Friendly.rb photos" ].compact.uniq.join(" — ")
   end

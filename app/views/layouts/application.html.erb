@@ -35,7 +35,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600&family=Sora:wght@600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Work+Sans:wght@400;600;700&family=Sora:wght@600;700;800&display=swap">
 
     <%# Named, not `:app`. That symbol globs every css under app/assets, which
         means Avo's 300KB build too -- and it dragged this stylesheet into
@@ -45,8 +45,13 @@
   </head>
 
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <%= render "shared/header" %>
     <% if notice %><p class="notice"><%= notice %></p><% end %>
     <% if alert %><p class="alert"><%= alert %></p><% end %>
-    <%= yield %>
+    <main id="main">
+      <%= yield %>
+    </main>
+    <%= render "shared/footer" %>
   </body>
 </html>

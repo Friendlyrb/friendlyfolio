@@ -1,0 +1,19 @@
+<div class="ribbon" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div>
+      <a class="site-footer__home" href="<%= root_path %>">
+        <%= render "shared/logo", class: "site-header__logo" %>
+        <span>Friendly.rb Photos</span>
+      </a>
+      <p>Photos from Friendly.rb Conf, the friendly European Ruby conference held in Bucharest from 2023 to 2025.</p>
+    </div>
+
+    <ul class="site-footer__links">
+      <li><a href="https://friendlyrb.com">Conference site</a></li>
+      <li><a href="https://www.youtube.com/@friendlyrb">Talks on YouTube</a></li>
+      <li><a href="https://friendlyrb.com/#memories">Memories</a></li>
+    </ul>
+  </div>
+  <p class="site-footer__copy">&copy; 2023–<%= Date.current.year %> Friendly.rb. Made with love for the community.</p>
+</footer>
