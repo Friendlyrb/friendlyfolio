@@ -32,8 +32,4 @@ module ApplicationHelper
   def gallery_accent(gallery)
     EDITION_ACCENTS.fetch(gallery.held_on&.year, "#FF3A36")
   end
-
-  def page_title
-    [ content_for(:title), "Friendly.rb photos" ].compact.uniq.join(" — ")
-  end
 end

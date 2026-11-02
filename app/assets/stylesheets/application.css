@@ -46,6 +46,11 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); color: var(--co
 
 :focus-visible { outline: 3px solid var(--color-red); outline-offset: 2px; }
 
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
 .skip-link {
   position: absolute; left: 1rem; top: -4rem; z-index: 50;
   background: var(--color-brand); color: #fff; font-weight: 600;

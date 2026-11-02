@@ -1,15 +1,17 @@
-<% content_for :title, "#{@section.title} — #{@gallery.title}" %>
-<% if @photo %>
-  <%# The JPEG tier deliberately: unfurlers on Slack, LinkedIn and X do not
-      decode AVIF, so an AVIF og:image renders as nothing. %>
-  <% content_for :og_image, photo_variant_url(@photo, :share_jpeg) %>
-  <% content_for :og_title, "#{@section.title} — #{@gallery.title}" %>
-<% elsif (cover = @section.photos.displayable.first) %>
-  <% content_for :og_image, photo_variant_url(cover, :share_jpeg) %>
-<% end %>
-<% if @gallery.description.present? %>
-  <% content_for :og_description, @gallery.description %>
-<% end %>
+<%# A photo deep link is its own page: it unfurls as that photo and is its
+    own canonical. A section's later pages keep their ?page= in the canonical,
+    since each holds different photos. %>
+<% seo title: (@photo ? "Photo from #{@section.title}, #{@gallery.title}" : "#{@section.title}, #{@gallery.title} photos"),
+       description: @section.description.presence || @gallery.description.presence ||
+         "#{pluralize(@section.photos_count, "photo")} from #{@section.title} at #{@gallery.title}.",
+       page_type: (@photo ? "WebPage" : "ImageGallery"),
+       image: @photo || @section.photos.displayable.first,
+       image_alt: "#{@section.title}. #{@gallery.title}",
+       canonical_path: (@photo ? gallery_section_photo_path(@gallery, @section, @photo) :
+                         gallery_section_path(@gallery, @section, page: (@page if @page.to_i > 1))),
+       breadcrumbs: [ [ "Photo galleries", root_path ], [ @gallery.title, gallery_path(@gallery) ],
+                      [ @section.title, gallery_section_path(@gallery, @section) ] ],
+       robots: ("noindex, nofollow" unless @gallery.published?) %>
 
 <%#
   Two shapes from one action. The gallery page pulls each section in through a
@@ -22,7 +24,7 @@
   <%= render "sections/frame", gallery: @gallery, section: @section, photos: @photos, page: @page, photo: @photo %>
 <% else %>
   <article class="gallery" style="--accent: <%= gallery_accent(@gallery) %>">
-    <%= render "galleries/cover", gallery: @gallery %>
+    <%= render "galleries/cover", gallery: @gallery, section: @section %>
     <%= render "sections/nav", gallery: @gallery, current: @section %>
 
     <section class="gallery-section">

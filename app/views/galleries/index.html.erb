@@ -1,4 +1,7 @@
-<% content_for :title, "Friendly.rb photos" %>
+<% cover_gallery = @galleries.find(&:cover) %>
+<% seo page_type: "CollectionPage",
+       image: cover_gallery&.cover,
+       image_alt: cover_gallery && "#{cover_gallery.title} cover photo" %>
 
 <header class="page-header">
   <p class="eyebrow">Relive it</p>

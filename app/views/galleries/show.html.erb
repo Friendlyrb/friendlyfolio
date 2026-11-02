@@ -1,10 +1,11 @@
-<% content_for :title, @gallery.title %>
-<% if @gallery.cover %>
-  <% content_for :og_image, photo_variant_url(@gallery.cover, :share_jpeg) %>
-<% end %>
-<% if @gallery.description.present? %>
-  <% content_for :og_description, @gallery.description %>
-<% end %>
+<% seo title: "#{@gallery.title} photos",
+       description: @gallery.description.presence ||
+         "#{pluralize(@gallery.photos_count, "photo")} from #{@gallery.title}#{", #{@gallery.held_on.strftime("%-d %B %Y")}" if @gallery.held_on}, by section.",
+       page_type: "ImageGallery",
+       image: @gallery.cover,
+       image_alt: "#{@gallery.title} cover photo",
+       breadcrumbs: [ [ "Photo galleries", root_path ], [ @gallery.title, gallery_path(@gallery) ] ],
+       robots: ("noindex, nofollow" unless @gallery.published?) %>
 
 <% if admin_signed_in? && !@gallery.published? %>
   <%#

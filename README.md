@@ -107,6 +107,11 @@ readlink -f /home/deploy/<app>/current/storage
 
 Required environment: `SECRET_KEY_BASE`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
 
+Set `APP_HOST` to the public hostname (`photos.friendlyrb.com`) as well. It
+turns on Rails' host authorization, and the canonical, `og:*`, sitemap and
+`robots.txt` URLs are built on it. Without it they fall back to the request's
+own host, which a client can forge with `X-Forwarded-Host`.
+
 ### Publication is a one-way door
 
 Unpublishing a gallery closes every route this app serves for it. It does not
