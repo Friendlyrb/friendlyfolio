@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   # No :registerable on the model is what actually removes the sign-up routes;
   # this documents the intent and drops the password paths too.
-  devise_for :users, skip: [ :registrations, :passwords ]
+  devise_for :users, skip: [ :registrations, :passwords ], format: false
 
   # Inside an authenticate block rather than behind a before_action, so /avo is
   # not even routable when signed out.

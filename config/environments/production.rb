@@ -41,8 +41,9 @@ Rails.application.configure do
   config.hosts << ENV["APP_HOST"] if ENV["APP_HOST"].present?
 
   # Canonical, og:* and sitemap URLs are built on this host rather than on the
-  # request's Host or X-Forwarded-Host, which a client controls.
-  config.x.canonical_url = "https://#{ENV["APP_HOST"]}" if ENV["APP_HOST"].present?
+  # request's Host or X-Forwarded-Host, which a client controls -- with the
+  # public hostname as the default, so a missing APP_HOST cannot reopen that.
+  config.x.canonical_url = "https://#{ENV.fetch("APP_HOST", "photos.friendlyrb.com")}"
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
   # Skip http-to-https redirect for the default health check endpoint.

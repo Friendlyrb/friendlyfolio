@@ -55,7 +55,7 @@ locations to anyone who downloads a photo. This is lossless and leaves
 copyright and artist tags intact:
 
 ```bash
-exiftool -gps:all= -overwrite_original /path/to/photos
+exiftool -gps:all= -xmp:geotag= -overwrite_original /path/to/photos
 ```
 
 Then ingest and bake:
@@ -108,9 +108,9 @@ readlink -f /home/deploy/<app>/current/storage
 Required environment: `SECRET_KEY_BASE`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
 
 Set `APP_HOST` to the public hostname (`photos.friendlyrb.com`) as well. It
-turns on Rails' host authorization, and the canonical, `og:*`, sitemap and
-`robots.txt` URLs are built on it. Without it they fall back to the request's
-own host, which a client can forge with `X-Forwarded-Host`.
+turns on Rails' host authorization, which rejects requests whose `Host` or
+`X-Forwarded-Host` names another site. The canonical, `og:*`, sitemap and
+`robots.txt` URLs are built on it too, defaulting to `photos.friendlyrb.com`.
 
 ### Publication is a one-way door
 

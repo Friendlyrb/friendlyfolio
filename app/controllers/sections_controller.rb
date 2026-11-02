@@ -5,8 +5,7 @@ class SectionsController < ApplicationController
   # Rendered inline for the first section and lazily via a Turbo frame for the
   # rest, so a gallery with 700 photos does not ship them all at once.
   def show
-    @page = params[:page].to_i
-    @page = 1 if @page < 1
+    @page = params[:page].to_i.clamp(1, @section.page_count)
     @photos = paginated_photos
   end
 

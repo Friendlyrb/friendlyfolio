@@ -290,6 +290,31 @@ class PhotosTaskTest < ActiveSupport::TestCase
     assert_match(/1 photo\(s\) have every derivative but no derivatives_ready_at/, run.output)
   end
 
+  test "preprocess refuses a photo flagged as carrying GPS and leaves it hidden" do
+    section = section_for
+    ingest(section, %w[a.jpg])
+    photo = section.photos.first
+    photo.update_columns(has_location_data: true, derivatives_ready_at: Time.current)
+
+    run = run_task("photos:preprocess", "2025")
+
+    assert_match(/carries GPS location data/, run.output)
+    assert_match(/1 photo\(s\) failed to bake/, run.output)
+    assert_nil photo.reload.derivatives_ready_at, "a located photo must never be marked ready"
+  end
+
+  test "verify fails a gallery holding a photo flagged as carrying GPS" do
+    section = section_for
+    ingest(section, %w[a.jpg])
+    section.photos.first.update_columns(has_location_data: true)
+
+    run = run_task("photos:verify", "2025")
+
+    assert run.aborted?
+    assert_match(%r{day-1/a\.jpg .*carries GPS location data}, run.output)
+    assert_no_match(/safe to publish/, run.output)
+  end
+
   test "verify fails clearly for an unknown gallery" do
     section_for
 
@@ -323,17 +348,6 @@ class PhotosTaskTest < ActiveSupport::TestCase
         $stdout, $stderr = previous_out, previous_err
       end
       TaskRun.new(buffer.string, aborted)
-    end
-
-    # Minitest 6 dropped Object#stub with minitest/mock, and these two swaps are
-    # the only ones the suite needs.
-    def stubbing(object, name, result)
-      singleton = object.singleton_class
-      original = object.method(name)
-      singleton.define_method(name) { |*args| result.respond_to?(:call) ? result.call(*args) : result }
-      yield
-    ensure
-      singleton.define_method(name, original)
     end
 
     def section_for

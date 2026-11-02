@@ -44,13 +44,24 @@ class Photo < ApplicationRecord
   # out the new original with its coordinates intact.
   after_commit :refresh_image_derivatives, on: [ :create, :update ], if: :image_changed?
 
+  # The commit above runs only after the new blob is live, so without this a
+  # replaced image is displayable -- unscanned -- until the callback catches up.
+  before_save :hide_until_rebaked, if: -> { persisted? && attachment_changes["image"].present? }
+
   validates :position, presence: true
+  # Interpolated into style attributes on the public wall, so it must stay a
+  # plain hex colour whatever path writes it.
+  validates :dominant_color, format: { with: /\A#\h{6}\z/ }, allow_nil: true
 
   # Only photos whose derivatives exist are ever rendered. Otherwise a photo
   # added to a live gallery would be served before its variants were baked, and
   # the representation controller generates a missing variant synchronously
   # inside the request.
-  scope :displayable, -> { where.not(derivatives_ready_at: nil) }
+  #
+  # The GPS verdict is part of the same gate rather than left to whoever sets
+  # derivatives_ready_at: there are several writers (the job, photos:preprocess)
+  # and one of them once forgot to check it.
+  scope :displayable, -> { where.not(derivatives_ready_at: nil).where(has_location_data: false) }
 
   # Without this every tile queries for its attachment and blob -- several
   # hundred queries on a full wall.
@@ -79,11 +90,18 @@ class Photo < ApplicationRecord
   # Width, height and dominant colour hang off the attachment rather than the
   # import task, so a photo added through the admin arrives with them too.
   # Without dimensions the wall cannot reserve the tile's space.
+  #
+  # A scan that fails leaves the photo flagged, not clean: "never checked" must
+  # not look like "checked, no GPS", or a storage hiccup publishes an attendee's
+  # location. width stays nil, which is how the importer tells the two apart.
   def extract_image_metadata
     ImageMetadata.apply(self)
   rescue StandardError => e
-    Rails.logger.warn("Photo##{id} metadata extraction failed: #{e.message}")
+    update_columns(has_location_data: true)
+    Rails.logger.warn("Photo##{id} metadata extraction failed, treating it as located: #{e.message}")
   end
+
+  def scanned? = width.present?
 
   def image_changed?
     return false unless image.attached?
@@ -106,7 +124,7 @@ class Photo < ApplicationRecord
     if has_location_data?
       raise LocationDataPresent,
             "#{download_filename} still carries GPS EXIF. Strip it from the source first: " \
-            "exiftool -gps:all= -overwrite_original <dir>"
+            "exiftool -gps:all= -xmp:geotag= -overwrite_original <dir>"
     end
 
     VARIANTS.each_key { |name| image.variant(name).processed }
@@ -126,6 +144,10 @@ class Photo < ApplicationRecord
   def self.auto_bake? = !Thread.current[:photo_skip_auto_bake]
 
   private
+
+  def hide_until_rebaked
+    self.derivatives_ready_at = nil
+  end
 
   def bake_variants_later
     BakePhotoVariantsJob.perform_later(self) if self.class.auto_bake?

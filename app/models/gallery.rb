@@ -24,6 +24,9 @@ class Gallery < ApplicationRecord
   def cover
     return @cover if defined?(@cover)
 
-    @cover = cover_photo || photos.displayable.first
+    # The chosen cover counts only if it is this gallery's own and displayable:
+    # a photo moved to a draft gallery, still baking, or flagged for GPS must
+    # not surface on the index, the cover or og:image.
+    @cover = (photos.displayable.find_by(id: cover_photo_id) if cover_photo_id) || photos.displayable.first
   end
 end
