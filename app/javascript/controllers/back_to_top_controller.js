@@ -1,7 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
-// The friendlyrb.com back-to-top button: shows once the page has scrolled a
-// screen or so, which on a 300-photo wall is most of the visit.
+// The friendlyrb.com back-to-top button. It shows past 600px there, but every
+// page on that site is long; here the index and sign-in scroll less than 600px
+// in total, so a fixed threshold meant the button never appeared on them. A
+// shorter page shows it halfway down instead, and a page that barely scrolls
+// has no top to get back to.
+const THRESHOLD = 600
+const MIN_SCROLL = 200
+
 export default class extends Controller {
   connect() {
     this.ticking = false
@@ -10,7 +16,10 @@ export default class extends Controller {
       this.ticking = true
       requestAnimationFrame(() => {
         this.ticking = false
-        this.element.classList.toggle("is-visible", window.scrollY > 600)
+        // Measured on every scroll: lazily loaded sections grow the page.
+        const room = document.documentElement.scrollHeight - window.innerHeight
+        const threshold = Math.min(THRESHOLD, room / 2)
+        this.element.classList.toggle("is-visible", room > MIN_SCROLL && window.scrollY > threshold)
       })
     }
     window.addEventListener("scroll", this.onScroll, { passive: true })
