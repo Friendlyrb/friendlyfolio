@@ -5,6 +5,8 @@
 <% editions = @galleries.select(&:held_on) %>
 <% photo_total = @galleries.sum(&:photos_count) %>
 
+<div class="hero-band">
+<div class="hero-grid" aria-hidden="true"></div>
 <section class="index-hero" data-controller="parallax">
   <div class="index-hero__text">
     <p class="eyebrow">Relive it</p>
@@ -67,6 +69,8 @@
     </div>
   <% end %>
 </section>
+</div>
+<div class="ribbon ribbon--divider" aria-hidden="true"></div>
 
 <ul class="gallery-index" id="galleries" data-controller="blurhash">
   <% @galleries.each do |gallery| %>

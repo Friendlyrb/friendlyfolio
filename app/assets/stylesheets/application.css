@@ -161,6 +161,25 @@ main:focus { outline: none; }
   background: #fff url("ribbon.svg") repeat-x center / auto 46px;
   image-rendering: pixelated;
 }
+@media (min-width: 48rem) { .ribbon { height: 69px; background-size: auto 69px; } }
+/* Between a hero and the content below it, as on friendlyrb.com. */
+.ribbon--divider { margin-top: 0; }
+
+/*
+  The band behind a hero, full width: friendlyrb.com's faint pixel grid,
+  fading out from the middle. isolate keeps the grid behind the hero's
+  content without slipping under the page.
+*/
+.hero-band { position: relative; isolation: isolate; overflow: hidden; padding-bottom: 3.5rem; }
+.hero-grid {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgb(1 43 127 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(1 43 127 / 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center top;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 75%);
+}
 .site-footer { background: #000; color: #bfdbfe; padding: 4rem 1.5rem 2.5rem; }
 .site-footer__inner { max-width: 72rem; margin: 0 auto; }
 .site-footer__grid { display: grid; gap: 3rem; }
@@ -385,7 +404,7 @@ main:focus { outline: none; }
 .eyebrow { font-family: var(--font-handwriting); font-size: 2rem; line-height: 1; color: var(--color-red-text); margin: 0 0 0.5rem; }
 .index-hero {
   --px: 0; --py: 0;
-  max-width: 74rem; margin: 0 auto 1.5rem; padding: 2.5rem 1rem 1rem;
+  max-width: 74rem; margin: 0 auto; padding: 2.5rem 1rem 0;
   display: grid; gap: 1.5rem; align-items: center; overflow-x: clip;
 }
 @media (min-width: 64rem) { .index-hero { grid-template-columns: 1fr 1fr; gap: 3rem; padding-top: 3.5rem; } }
@@ -403,15 +422,6 @@ main:focus { outline: none; }
 .edition-link:hover { translate: -2px -2px; box-shadow: 5px 5px 0 var(--accent); }
 
 .deck { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; padding: 1.5rem 0 0.5rem; }
-/* friendlyrb.com's faint pixel grid, fading out towards the edges. */
-.deck::before {
-  content: ""; position: absolute; inset: -2rem -1rem; z-index: -1;
-  background-image:
-    linear-gradient(to right, rgb(1 43 127 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(1 43 127 / 0.06) 1px, transparent 1px);
-  background-size: 32px 32px; background-position: center;
-  mask-image: radial-gradient(ellipse 60% 60% at 50% 45%, black 25%, transparent 75%);
-}
 .deck__pile {
   --w: 14.5rem;
   position: relative; width: var(--w); height: calc(var(--w) + 3.1rem);
@@ -473,7 +483,7 @@ main:focus { outline: none; }
   50% { transform: translateY(-14px) rotate(12deg); }
 }
 
-.gallery-index { list-style: none; display: grid; gap: 2.5rem; padding: 1rem 1.5rem; margin: 0 auto; max-width: 72rem;
+.gallery-index { list-style: none; display: grid; gap: 2.5rem; padding: 3.5rem 1.5rem 1rem; margin: 0 auto; max-width: 72rem;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
 .gallery-card a {
   text-decoration: none; color: inherit; display: block; height: 100%;

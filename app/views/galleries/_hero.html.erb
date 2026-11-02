@@ -11,6 +11,8 @@
 <% polaroids = hero_polaroids(gallery) %>
 <% photo_count = gallery.photos_count %>
 <% section_count = gallery.sections.size %>
+<div class="hero-band">
+<div class="hero-grid" aria-hidden="true"></div>
 <header class="edition-hero">
   <div class="edition-hero__text">
     <% if (label = edition_label(gallery)) %>
@@ -59,3 +61,5 @@
     </ul>
   <% end %>
 </header>
+</div>
+<div class="ribbon ribbon--divider" aria-hidden="true"></div>
