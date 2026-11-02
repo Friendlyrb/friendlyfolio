@@ -22,7 +22,9 @@ Rails.application.configure do
   # config.asset_host = "http://assets.example.com"
 
   # Photos live in Cloudflare R2, not on the box (see config/storage.yml).
-  config.active_storage.service = :r2
+  # R2 in production. compose.yaml sets ACTIVE_STORAGE_SERVICE=local to run the
+  # production image against disk storage on a laptop.
+  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "r2").to_sym
 
   # The bucket's custom domain, which Cloudflare fronts with its CDN. Set, every
   # image URL points straight at it and Puma never serves a byte. Unset, URLs
@@ -30,11 +32,11 @@ Rails.application.configure do
   # emitting broken links.
   config.x.image_host = ENV["R2_PUBLIC_HOST"].presence
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  config.assume_ssl = true
-
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  # Assume all access to the app is happening through a SSL-terminating reverse
+  # proxy, force it over SSL, send Strict-Transport-Security and use secure
+  # cookies. RAILS_FORCE_SSL=false exists only for running the production image
+  # on plain http://localhost (compose.yaml); never set it on a public box.
+  config.assume_ssl = config.force_ssl = ENV.fetch("RAILS_FORCE_SSL", "true") != "false"
 
   # Public pages are edge-cacheable and og:url echoes the request host, so an
   # unconstrained Host lets a forged one be cached under the real host's key.
@@ -43,7 +45,8 @@ Rails.application.configure do
   # Canonical, og:* and sitemap URLs are built on this host rather than on the
   # request's Host or X-Forwarded-Host, which a client controls -- with the
   # public hostname as the default, so a missing APP_HOST cannot reopen that.
-  config.x.canonical_url = "https://#{ENV.fetch("APP_HOST", "photos.friendlyrb.com")}"
+  # CANONICAL_URL overrides it where the URL needs a port (compose.yaml).
+  config.x.canonical_url = ENV["CANONICAL_URL"].presence || "https://#{ENV.fetch("APP_HOST", "photos.friendlyrb.com")}"
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
   # Skip http-to-https redirect for the default health check endpoint.
