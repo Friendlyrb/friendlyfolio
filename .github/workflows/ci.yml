@@ -1,0 +1,83 @@
+# The steps of config/ci.rb (bin/ci), split into parallel jobs so a lint or
+# audit failure shows up on its own line in the PR.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (RuboCop)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - run: bin/rubocop -f github
+
+  security:
+    name: Security audits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Brakeman
+        run: bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error
+      - name: Gem audit
+        run: bin/bundler-audit check --update
+      - name: Importmap audit
+        run: bin/importmap audit
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    # The Ruby image rather than the runner: the photo tests bake real AVIF
+    # variants, and this Debian's libvips gets an AV1 encoder from
+    # libheif-plugin-aomenc. Without it every baking test fails with
+    # "heifsave: Unsupported compression".
+    container: ruby:3.4.5
+    env:
+      RAILS_ENV: test
+      BUNDLE_PATH: vendor/bundle
+    steps:
+      - name: Install libvips with AVIF support
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends libvips42 libheif-plugin-aomenc libheif-plugin-dav1d
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: gems-${{ runner.os }}-ruby-3.4.5-${{ hashFiles('Gemfile.lock') }}
+          restore-keys: gems-${{ runner.os }}-ruby-3.4.5-
+      - run: bundle install --jobs 4
+      - run: bin/rails db:prepare
+      - run: bin/rails test
+      - name: Seeds
+        run: bin/rails db:seed:replant
+
+  build:
+    name: Build (production assets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Precompile assets as production does
+        env:
+          RAILS_ENV: production
+          SECRET_KEY_BASE_DUMMY: "1"
+        run: bin/rails assets:precompile
