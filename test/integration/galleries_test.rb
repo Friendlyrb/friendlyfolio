@@ -142,7 +142,7 @@ class GalleriesTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_no_match(/class="cover"/, response.body, "a frame response must not repeat the cover")
-    assert_no_match(/sections-nav/, response.body, "a frame response must not repeat the nav")
+    assert_no_match(/class="site-nav"/, response.body, "a frame response must not repeat the nav")
   end
 
   test "an index card carries its cover's blurhash" do
@@ -167,11 +167,42 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     create_photo(section)
 
     get gallery_path(gallery)
-    back = response.body[/<a class="sections-nav__back".*?<\/a>/m]
-    assert_match(/href="#{root_path}"/, back, "the gallery page linked to itself")
+    nav = response.body[%r{<nav class="site-nav".*?</nav>}m]
+    assert_match(%r{<a class="site-nav-link" href="#{root_path}">All galleries</a>}, nav)
 
     get gallery_section_path(gallery, section)
-    back = response.body[/<a class="sections-nav__back".*?<\/a>/m]
-    assert_match(/href="#{gallery_path(gallery)}"/, back)
+    nav = response.body[%r{<nav class="site-nav".*?</nav>}m]
+    assert_match(%r{<a class="site-nav-link" href="#{gallery_path(gallery)}">}, nav)
+  end
+
+  test "on a gallery page the nav jumps to each section on the page" do
+    gallery = create_gallery(sections: { "day-1" => "Day 1", "day-2" => "Day 2" })
+    gallery.sections.each { |s| create_photo(s) }
+
+    get gallery_path(gallery)
+
+    nav = response.body[%r{<nav class="site-nav".*?</nav>}m]
+    assert_match(/href="#section-day-1"\s+data-section-link/, nav)
+    assert_match(/id="section-day-2"/, response.body, "each anchor needs its target")
+  end
+
+  test "the footer carries the conference site's links and credits" do
+    get root_path
+
+    footer = response.body[%r{<footer class="site-footer".*?</footer>}m]
+    %w[https://friendlyrb.com/edition-2025/ https://friendlyrb.com/edition-2024/ https://friendlyrb.com/edition-2023/
+       https://www.youtube.com/@friendlyrb https://friendlyrb.com/#memories mailto:hi@friendlyrb.com
+       https://discord.gg/jsKgxt3hfQ https://ruby.social/@friendlyrb https://x.com/friendlyrb].each do |href|
+      assert_includes footer, %(href="#{href}"), href
+    end
+    assert_match(/Hosted by/, footer)
+  end
+
+  test "pages use the conference site's icons" do
+    get root_path
+
+    assert_match %r{<link rel="icon" href="/favicon.svg" type="image/svg\+xml">}, response.body
+    assert_match %r{<link rel="apple-touch-icon" href="/apple-touch-icon.png">}, response.body
+    %w[favicon.ico favicon.svg apple-touch-icon.png].each { |f| assert Rails.public_path.join(f).file?, f }
   end
 end

@@ -25,7 +25,6 @@
 <% else %>
   <article class="gallery" style="--accent: <%= gallery_accent(@gallery) %>">
     <%= render "galleries/cover", gallery: @gallery, section: @section %>
-    <%= render "sections/nav", gallery: @gallery, current: @section %>
 
     <section class="gallery-section">
       <h2><%= @section.title %></h2>

@@ -42,7 +42,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, .gallery-card__title { font-family: var(--font-heading); color: var(--color-brand); letter-spacing: -0.02em; }
+h1, h2, .gallery-card__title { font-family: var(--font-heading); font-weight: 700; color: var(--color-brand); letter-spacing: -0.02em; }
 
 :focus-visible { outline: 3px solid var(--color-red); outline-offset: 2px; }
 
@@ -58,29 +58,102 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); color: var(--co
 }
 .skip-link:focus { top: 1rem; }
 
-/* Header: the friendlyrb.com nav card, lifted. */
-.site-header { padding: 0.75rem 0.75rem 0; }
-.site-header__card {
+/*
+  The friendlyrb.com nav (_tailwind.css .site-nav-*): a card that sticks to the
+  top. It sits flush until the page scrolls, then narrows and lifts with its
+  border and hard shadow. --accent is the gallery's edition colour.
+*/
+.site-nav { position: sticky; top: 0; z-index: 40; padding: 0.75rem 0.75rem 0; pointer-events: none; }
+@media (min-width: 40rem) { .site-nav { padding: 0.75rem 1.5rem 0; } }
+.site-nav-card {
+  pointer-events: auto;
   max-width: 72rem; margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  padding: 0 1rem; background: #fff;
-  border: 2px solid var(--color-brand); border-radius: 1rem;
-  box-shadow: 4px 4px 0 var(--color-red);
+  display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.5rem;
+  padding-left: 0.75rem;
+  background: #fff; border: 2px solid transparent; border-radius: 1rem;
+  transition: max-width 350ms cubic-bezier(0.22, 1, 0.36, 1), border-color 200ms ease, box-shadow 200ms ease, translate 200ms ease;
 }
-.site-header__home {
-  display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3.5rem;
+.site-nav.is-stuck .site-nav-card {
+  max-width: 64rem;
+  border-color: var(--color-brand);
+  box-shadow: 4px 4px 0 var(--accent);
+  translate: -2px -2px;
+}
+.site-nav-home {
+  display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3.5rem; flex-shrink: 0;
   font-family: var(--font-heading); font-weight: 700; font-size: 1.25rem;
-  color: var(--color-brand); text-decoration: none; white-space: nowrap;
+  color: var(--color-brand); text-decoration: none; white-space: nowrap; border-radius: 0.5rem;
 }
-.site-header__photos { color: var(--color-red-text); }
-.site-header__logo { width: 2.5rem; height: 2rem; flex-shrink: 0; transition: rotate 260ms cubic-bezier(0.34, 1.56, 0.64, 1); }
-.site-header__home:hover .site-header__logo { rotate: -8deg; }
-.site-header__link {
-  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 2.75rem; padding: 0 0.5rem;
-  color: rgb(1 43 127 / 0.75); font-weight: 600; font-size: 0.9375rem; text-decoration: none; white-space: nowrap;
+.site-nav-photos { color: var(--color-red-text); }
+.site-nav-logo { width: 2.5rem; height: 2rem; flex-shrink: 0; transition: rotate 260ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.site-nav-home:hover .site-nav-logo { rotate: -8deg; }
+.site-nav-links {
+  list-style: none; margin: 0 0 0 auto; padding: 0 0.75rem 0 0;
+  display: flex; align-items: center; gap: 0.25rem; min-width: 0;
+  overflow-x: auto; scrollbar-width: none;
 }
-.site-header__link:hover { color: var(--color-brand); }
-@media (max-width: 420px) { .site-header__link { display: none; } }
+.site-nav-links::-webkit-scrollbar { display: none; }
+.site-nav-links > li { flex-shrink: 0; }
+.site-nav-link {
+  position: relative; display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.75rem;
+  border-radius: 0.5rem; white-space: nowrap; text-decoration: none;
+  font-weight: 600; font-size: 0.9375rem; color: rgb(1 43 127 / 0.7); transition: color 150ms ease;
+}
+.site-nav-link:hover, .site-nav-link[aria-current] { color: var(--color-brand); }
+/* The pixel marker under the link, as on friendlyrb.com. */
+.site-nav-link::after {
+  content: ""; position: absolute; left: 50%; bottom: 0.3rem;
+  width: 6px; height: 6px; margin-left: -3px;
+  background: var(--accent); box-shadow: 1px 1px 0 var(--color-brand);
+  scale: 0; transition: scale 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.site-nav-link:hover::after { scale: 0.6; }
+.site-nav-link[aria-current]::after { scale: 1; }
+.site-nav-divider { width: 2px; height: 1.25rem; margin: 0 0.5rem; background: rgb(1 43 127 / 0.15); }
+.site-nav-toggle {
+  margin: 0 0.5rem 0 auto; display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 0.75rem;
+  border: 0; border-radius: 0.5rem; background: none; cursor: pointer;
+  font: inherit; font-weight: 600; font-size: 0.9375rem; color: var(--color-brand);
+}
+.site-nav-toggle[hidden] { display: none; }
+.site-nav-toggle-icon { width: 1.25rem; height: 1.25rem; }
+.site-nav-toggle-icon .menu-bar {
+  transform-box: fill-box; transform-origin: center;
+  transition: translate 220ms cubic-bezier(0.22, 1, 0.36, 1), rotate 220ms cubic-bezier(0.22, 1, 0.36, 1), scale 150ms ease;
+}
+.site-nav-toggle[aria-expanded="true"] .menu-bar-top { translate: 0 5.5px; rotate: 45deg; }
+.site-nav-toggle[aria-expanded="true"] .menu-bar-middle { scale: 0 1; }
+.site-nav-toggle[aria-expanded="true"] .menu-bar-bottom { translate: 0 -5.5px; rotate: -45deg; }
+@media (max-width: 23rem) { .site-nav-toggle-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); } }
+
+@media (min-width: 64rem) {
+  .site-nav-card { flex-wrap: nowrap; column-gap: 1.5rem; padding: 0 1rem; }
+  .site-nav-toggle, .site-nav-toggle:not([hidden]) { display: none; }
+  .site-nav-links { padding-right: 0; }
+}
+
+/* Small screens: without JS the links scroll sideways and fade at the edge.
+   With JS (.has-menu) they hide behind Menu and open as a list in the card. */
+@media (max-width: 63.999rem) {
+  .site-nav-links { mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent); }
+  .site-nav.has-menu .site-nav-links { display: none; }
+  .site-nav.is-open .site-nav-card { border-color: var(--color-brand); box-shadow: 4px 4px 0 var(--accent); }
+  .site-nav.is-open .site-nav-links {
+    display: flex; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 0;
+    max-height: calc(100dvh - 6rem); margin: 0 0.75rem 0 0; padding: 0.5rem 0 0.75rem;
+    border-top: 2px solid rgb(1 43 127 / 0.1); overflow-y: auto; mask-image: none;
+  }
+  .site-nav.is-open .site-nav-link { display: flex; min-height: 3rem; font-size: 1.0625rem; }
+  .site-nav.is-open .site-nav-link::after { left: 0; top: 50%; bottom: auto; margin: -3px 0 0 0; }
+  .site-nav.is-open .site-nav-divider { width: auto; height: 2px; margin: 0.375rem 0.75rem; }
+  .site-nav.is-open .site-nav-links > li {
+    transition: opacity 200ms ease, translate 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--i, 0) * 25ms);
+    @starting-style { opacity: 0; translate: 0 -0.5rem; }
+  }
+}
+
+main:focus { outline: none; }
 
 /* Footer: the embroidered ribbon, then black, as on friendlyrb.com. */
 .ribbon {
@@ -88,27 +161,52 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); color: var(--co
   background: #fff url("ribbon.svg") repeat-x center / auto 46px;
   image-rendering: pixelated;
 }
-.site-footer { background: #000; color: #bfdbfe; padding: 3.5rem 1.5rem 2.5rem; }
-.site-footer__inner {
-  max-width: 72rem; margin: 0 auto;
-  display: grid; gap: 2.5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+.site-footer { background: #000; color: #bfdbfe; padding: 4rem 1.5rem 2.5rem; }
+.site-footer__inner { max-width: 72rem; margin: 0 auto; }
+.site-footer__grid { display: grid; gap: 3rem; }
+@media (min-width: 40rem) { .site-footer__grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 64rem) { .site-footer__grid { grid-template-columns: 1.6fr 1fr 1fr 1fr; } }
+.site-footer ul { list-style: none; margin: 0; padding: 0; }
+.site-footer h2 {
+  margin: 0 0 0.5rem; color: #fff; font-family: var(--font-heading); font-size: 0.875rem;
+  font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
 }
-.site-footer__inner p { max-width: 26rem; line-height: 1.6; }
+.site-footer a { color: #bfdbfe; text-underline-offset: 4px; transition: color 150ms ease; }
+.site-footer a:hover { color: #fff; }
+.site-footer__grid li > a { display: inline-flex; align-items: center; min-height: 2.75rem; text-decoration: none; }
+.site-footer__grid li > a:hover { text-decoration: underline; }
 .site-footer__home {
   display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem;
-  font-family: var(--font-heading); font-weight: 700; font-size: 1.25rem; color: #fff; text-decoration: none;
+  font-family: var(--font-heading); font-weight: 700; font-size: 1.25rem; color: #fff !important; text-decoration: none;
 }
-.site-footer__links { list-style: none; margin: 0; padding: 0; justify-self: end; }
-.site-footer a:not(.site-footer__home) {
-  display: inline-flex; align-items: center; min-height: 2.75rem;
-  color: #bfdbfe; text-decoration: none; text-underline-offset: 4px;
+.site-footer__about { max-width: 20rem; margin: 1rem 0 0; font-size: 0.875rem; line-height: 1.6; }
+.site-footer__social { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem !important; }
+.site-footer__social a {
+  justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: 999px;
+  background: rgb(255 255 255 / 0.1); color: #dbeafe; transition: background-color 150ms ease, color 150ms ease;
 }
-.site-footer a:hover { color: #fff; text-decoration: underline; }
-.site-footer__copy {
-  max-width: 72rem; margin: 2.5rem auto 0; padding-top: 2rem;
-  border-top: 1px solid rgb(255 255 255 / 0.15); font-size: 0.875rem;
+.site-footer__social a:hover { background: var(--color-red-text); color: #fff; text-decoration: none; }
+.site-footer__icon { width: 1.25rem; height: 1.25rem; }
+.site-footer__bottom {
+  margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgb(255 255 255 / 0.15);
+  display: flex; flex-direction: column; gap: 1rem; font-size: 0.875rem;
 }
-@media (max-width: 640px) { .site-footer__links { justify-self: start; } }
+.site-footer__bottom p { margin: 0; }
+.site-footer__bottom a { text-decoration: underline; }
+@media (min-width: 48rem) { .site-footer__bottom { flex-direction: row; align-items: center; justify-content: space-between; } }
+
+/* Back to top, as on friendlyrb.com. */
+.back-to-top {
+  position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 40;
+  display: flex; align-items: center; justify-content: center; width: 3rem; height: 3rem;
+  border: 0; border-radius: 999px; background: var(--color-brand); color: #fff; cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  opacity: 0; visibility: hidden; transform: translateY(1rem);
+  transition: opacity 200ms ease, transform 200ms ease, visibility 200ms, background-color 150ms ease;
+}
+.back-to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
+.back-to-top:hover { background: var(--color-red-text); }
+.back-to-top__icon { width: 1.5rem; height: 1.5rem; }
 
 /*
   The justified wall.
@@ -179,43 +277,12 @@ h1, h2, .gallery-card__title { font-family: var(--font-heading); color: var(--co
 .cover__text h1 { color: #fff; font-size: clamp(2rem, 6vw, 3.75rem); line-height: 1.05; margin: 0; }
 .cover__text time { display: block; font-family: var(--font-handwriting); font-size: 2rem; line-height: 1; color: var(--color-yellow); }
 
-/* Sticks to the top like the friendlyrb.com nav; the active section gets
-   the same pixel marker under it. */
-.sections-nav {
-  display: flex; gap: 1rem; align-items: center;
-  max-width: 72rem; margin: 1.5rem auto 0; padding: 0.25rem 0.75rem;
-  overflow-x: auto; scrollbar-width: none;
-  position: sticky; top: 0.75rem; z-index: 10;
-  background: rgb(255 255 255 / 0.95); backdrop-filter: blur(8px);
-  border: 2px solid var(--color-brand); border-radius: 1rem;
-  box-shadow: 4px 4px 0 var(--accent);
-}
-.sections-nav::-webkit-scrollbar { display: none; }
-@media (max-width: 1240px) { .sections-nav { margin-left: 1rem; margin-right: 1rem; } }
-.sections-nav a {
-  position: relative; display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.6rem;
-  color: rgb(1 43 127 / 0.7); text-decoration: none; white-space: nowrap; font-weight: 600; font-size: 0.9375rem;
-  border-radius: 0.5rem;
-}
-.sections-nav a:hover { color: var(--color-brand); }
-.sections-nav__back { gap: 0.35rem; flex-shrink: 0; color: var(--color-brand) !important; }
-.sections-nav__links { display: flex; gap: 0.25rem; margin-left: auto; }
-.sections-nav__links a::after {
-  content: ""; position: absolute; left: 50%; bottom: 0.3rem;
-  width: 6px; height: 6px; margin-left: -3px;
-  background: var(--accent); box-shadow: 1px 1px 0 var(--color-brand);
-  scale: 0; transition: scale 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.sections-nav__links a:hover::after { scale: 0.6; }
-.sections-nav a[aria-current="page"] { color: var(--color-brand); }
-.sections-nav a[aria-current="page"]::after { scale: 1; }
-
 .gallery-section h2 a { color: inherit; text-decoration: none; }
 .gallery-section h2 a:hover { text-decoration: underline; text-decoration-color: var(--color-red); text-underline-offset: 6px; }
 
 /* 74rem is the 72rem column plus its gutters, so the wall lines up with the
    cover and the nav above it. */
-.gallery-section { max-width: 74rem; margin: 0 auto; padding: 2.5rem 1rem 0; scroll-margin-top: 5rem; }
+.gallery-section { max-width: 74rem; margin: 0 auto; padding: 2.5rem 1rem 0; scroll-margin-top: 5.5rem; }
 .gallery-section h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin: 0 0 0.25rem; }
 .section-description { color: var(--color-muted); margin: 0 0 1.25rem; max-width: 42rem; }
 

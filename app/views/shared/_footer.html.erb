@@ -1,19 +1,63 @@
+<%# The friendlyrb.com footer, link for link, so both sites close the same way. %>
 <div class="ribbon" aria-hidden="true"></div>
 <footer class="site-footer">
   <div class="site-footer__inner">
-    <div>
-      <a class="site-footer__home" href="<%= root_path %>">
-        <%= render "shared/logo", class: "site-header__logo" %>
-        <span>Friendly.rb Photos</span>
-      </a>
-      <p>Photos from Friendly.rb Conf, the friendly European Ruby conference held in Bucharest from 2023 to 2025.</p>
+    <div class="site-footer__grid">
+      <div>
+        <a class="site-footer__home" href="https://friendlyrb.com">
+          <%= render "shared/logo", class: "site-nav-logo" %>
+          <span>Friendly.rb Conf</span>
+        </a>
+        <p class="site-footer__about">Your friendly European Ruby conference. Three editions in Bucharest, Romania, from 2023 to 2025.</p>
+        <ul class="site-footer__social" aria-label="Friendly.rb on social media">
+          <li><a href="https://x.com/friendlyrb" target="_blank" rel="noopener" aria-label="X (Twitter), opens in a new tab"><%= render "shared/icons/x", class: "site-footer__icon" %></a></li>
+          <li><a href="https://ruby.social/@friendlyrb" target="_blank" rel="me noopener" aria-label="Mastodon, opens in a new tab"><%= render "shared/icons/mastodon", class: "site-footer__icon" %></a></li>
+          <li><a href="https://www.youtube.com/@friendlyrb" target="_blank" rel="noopener" aria-label="YouTube, opens in a new tab"><%= render "shared/icons/youtube", class: "site-footer__icon" %></a></li>
+          <li><a href="https://discord.gg/jsKgxt3hfQ" target="_blank" rel="noopener" aria-label="Discord community, opens in a new tab"><%= render "shared/icons/discord", class: "site-footer__icon" %></a></li>
+        </ul>
+      </div>
+
+      <nav aria-label="Editions">
+        <h2>Editions</h2>
+        <ul>
+          <li><a href="https://friendlyrb.com/edition-2025/">Edition 2025</a></li>
+          <li><a href="https://friendlyrb.com/edition-2024/">Edition 2024</a></li>
+          <li><a href="https://friendlyrb.com/edition-2023/">Edition 2023</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <h2>Relive it</h2>
+        <ul>
+          <li><a href="<%= root_path %>">Photo galleries</a></li>
+          <li><a href="https://www.youtube.com/@friendlyrb">Talks on YouTube</a></li>
+          <li><a href="https://friendlyrb.com/#memories">Memories</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2>Get in touch</h2>
+        <ul>
+          <li><a href="mailto:hi@friendlyrb.com">hi@friendlyrb.com</a></li>
+          <li><a href="https://discord.gg/jsKgxt3hfQ">Join our Discord</a></li>
+          <li><a href="https://ruby.social/@friendlyrb" rel="me">Follow on Mastodon</a></li>
+        </ul>
+      </div>
     </div>
 
-    <ul class="site-footer__links">
-      <li><a href="https://friendlyrb.com">Conference site</a></li>
-      <li><a href="https://www.youtube.com/@friendlyrb">Talks on YouTube</a></li>
-      <li><a href="https://friendlyrb.com/#memories">Memories</a></li>
-    </ul>
+    <div class="site-footer__bottom">
+      <p>&copy; 2023–<%= Date.current.year %> Friendly.rb Conf. Made with love for the community.</p>
+      <p>Hosted by
+        <a href="https://x.com/adrianthedev">Adrian</a>,
+        <a href="https://x.com/lucianghinda">Lucian</a>,
+        <a href="https://x.com/jcsrb">Jakob</a>,
+        <a href="https://x.com/_alexmarinescu">Alex</a> and
+        <a href="https://x.com/stefanbc">Stefan</a>.
+      </p>
+    </div>
   </div>
-  <p class="site-footer__copy">&copy; 2023–<%= Date.current.year %> Friendly.rb. Made with love for the community.</p>
 </footer>
+
+<button type="button" class="back-to-top" aria-label="Back to top" data-controller="back-to-top" data-action="back-to-top#scroll">
+  <%= render "shared/icons/chevron_up", class: "back-to-top__icon" %>
+</button>
