@@ -1,0 +1,60 @@
+# Runs the production image locally: the web server and the Solid Queue worker
+# that bakes photo variants, sharing one storage volume (SQLite databases and,
+# with the local service, the photos).
+#
+#   echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" > .env
+#   echo "ADMIN_EMAIL=you@example.com" >> .env
+#   echo "ADMIN_PASSWORD=$(openssl rand -base64 18)" >> .env
+#   docker compose up --build
+#
+# Then open http://localhost:3000 (admin at /avo). Day-to-day development is
+# still bin/dev; this is for checking the real production build.
+
+x-app: &app
+  build: .
+  image: friendlyfolio
+  restart: unless-stopped
+  volumes:
+    - storage:/rails/storage
+  environment:
+    SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env (openssl rand -hex 64)}
+    ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+    ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    # Disk storage instead of R2, plain http on localhost, and links that
+    # carry the port. None of these belong on a public deployment.
+    ACTIVE_STORAGE_SERVICE: ${ACTIVE_STORAGE_SERVICE:-local}
+    RAILS_FORCE_SSL: ${RAILS_FORCE_SSL:-false}
+    APP_HOST: ${APP_HOST:-localhost}
+    CANONICAL_URL: ${CANONICAL_URL:-http://localhost:3000}
+    # Only read when ACTIVE_STORAGE_SERVICE=r2.
+    R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+    R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+    R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+    R2_BUCKET: ${R2_BUCKET:-}
+    R2_PUBLIC_HOST: ${R2_PUBLIC_HOST:-}
+
+services:
+  web:
+    <<: *app
+    # Loopback only: Compose serves plain HTTP, so sign-in and the admin must
+    # not be reachable from the rest of the network.
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "http://localhost:3000/up" ]
+      interval: 10s
+      timeout: 3s
+      start_period: 30s
+
+  # A separate process, as in production: libvips baking competes with nothing
+  # for Puma's threads. It waits for web, whose entrypoint prepares the
+  # databases.
+  jobs:
+    <<: *app
+    command: ./bin/jobs
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  storage:

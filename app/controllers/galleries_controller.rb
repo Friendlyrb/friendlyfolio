@@ -2,8 +2,15 @@ class GalleriesController < ApplicationController
   before_action :set_cache_headers
   before_action :set_gallery, only: :show
 
+  # DECK_SIZE photos dealt from every visible gallery for the index's hero. A
+  # random pick per render; the CDN holds each for its five minutes.
+  DECK_SIZE = 8
+
   def index
     @galleries = visible_galleries.newest_first.includes(cover_photo: { image_attachment: :blob })
+    @deck = Photo.displayable.with_images.includes(section: :gallery)
+                 .joins(:section).where(sections: { gallery_id: visible_galleries.select(:id) })
+                 .reorder(Arel.sql("RANDOM()")).limit(DECK_SIZE).to_a
   end
 
   def show

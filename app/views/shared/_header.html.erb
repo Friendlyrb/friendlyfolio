@@ -1,11 +1,60 @@
-<%# The nav card from friendlyrb.com, in its lifted state. Not sticky here: the
-    sections nav below the cover is the bar that follows you down a gallery. %>
-<header class="site-header">
-  <nav class="site-header__card" aria-label="Main">
-    <a class="site-header__home" href="<%= root_path %>">
-      <%= render "shared/logo", class: "site-header__logo" %>
-      <span>Friendly.rb <span class="site-header__photos">Photos</span></span>
+<%#
+  The friendlyrb.com nav: a card that sticks to the top of the page. Page links
+  come first, then -- set apart by a divider -- the sections, then the
+  conference site. On a gallery page the sections are in-page anchors that the
+  site-nav controller marks as they scroll into view; on a section page they
+  are links to the other sections, with this one marked by the server.
+
+  Without JS the links stay a scrolling row beside the logo. With it, below
+  64rem, they fold behind a Menu button. Frame requests render no layout, so
+  this never repeats inside a lazily loaded section.
+%>
+<%
+  page_links = []
+  section_links = []
+
+  if @section
+    page_links << [ "All galleries", root_path ]
+    page_links << [ @gallery.title, gallery_path(@gallery) ]
+    if @gallery.sections.size > 1
+      @gallery.sections.each do |s|
+        section_links << { label: s.title, href: gallery_section_path(@gallery, s), current: s == @section }
+      end
+    end
+  elsif @gallery
+    page_links << [ "All galleries", root_path ]
+    if @gallery.sections.size > 1
+      @gallery.sections.each { |s| section_links << { label: s.title, href: "#section-#{s.slug}", anchor: true } }
+    end
+  elsif @galleries
+    @galleries.each { |g| page_links << [ g.title, gallery_path(g) ] }
+  end
+%>
+<nav class="site-nav" aria-label="Main" data-controller="site-nav"
+     <%= tag.attributes(style: "--accent: #{gallery_accent(@gallery)}") if @gallery %>>
+  <div class="site-nav-card" data-site-nav-target="card">
+    <a class="site-nav-home" href="<%= root_path %>">
+      <%= render "shared/logo", class: "site-nav-logo" %>
+      <span>Friendly.rb <span class="site-nav-photos">Photos</span></span>
     </a>
-    <a class="site-header__link" href="https://friendlyrb.com">friendlyrb.com <span aria-hidden="true">&rarr;</span></a>
-  </nav>
-</header>
+    <button type="button" class="site-nav-toggle" hidden aria-expanded="false" aria-controls="site-nav-links"
+            data-site-nav-target="toggle" data-action="site-nav#toggle">
+      <span class="site-nav-toggle-label">Menu</span><%= render "shared/icons/menu", class: "site-nav-toggle-icon" %>
+    </button>
+    <ul id="site-nav-links" class="site-nav-links" data-site-nav-target="links">
+      <% page_links.each do |label, href| %>
+        <li><a class="site-nav-link" href="<%= href %>"><%= label %></a></li>
+      <% end %>
+      <% if section_links.any? %>
+        <% if page_links.any? %><li class="site-nav-divider" aria-hidden="true"></li><% end %>
+        <% section_links.each do |link| %>
+          <li><a class="site-nav-link" href="<%= link[:href] %>"
+                 <%= "data-section-link" if link[:anchor] %>
+                 <%= 'aria-current="page"'.html_safe if link[:current] %>><%= link[:label] %></a></li>
+        <% end %>
+      <% end %>
+      <% if page_links.any? || section_links.any? %><li class="site-nav-divider" aria-hidden="true"></li><% end %>
+      <li><a class="site-nav-link" href="https://friendlyrb.com">friendlyrb.com <span aria-hidden="true">&#8599;</span></a></li>
+    </ul>
+  </div>
+</nav>

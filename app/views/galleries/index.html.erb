@@ -2,15 +2,78 @@
 <% seo page_type: "CollectionPage",
        image: cover_gallery&.cover,
        image_alt: cover_gallery && "#{cover_gallery.title} cover photo" %>
+<% editions = @galleries.select(&:held_on) %>
+<% photo_total = @galleries.sum(&:photos_count) %>
 
-<header class="page-header">
-  <p class="eyebrow">Relive it</p>
-  <h1>Photo galleries</h1>
-  <p class="lede">Every edition, every day, every hallway conversation someone pointed a camera at.</p>
-</header>
+<div class="hero-band">
+<div class="hero-grid" aria-hidden="true"></div>
+<section class="index-hero" data-controller="parallax">
+  <div class="index-hero__text">
+    <p class="eyebrow">Relive it</p>
+    <h1 class="index-hero__title">Friendly.rb in photos</h1>
+    <p class="index-hero__lede">
+      <% if photo_total.positive? %>
+        <%= number_with_delimiter(photo_total) %> photos from <%= pluralize(@galleries.size, "edition") %> in Bucharest:
+        the talks, the hallway, the hora and the mountain trips. Every one is free to download.
+      <% else %>
+        Every edition, every day, every hallway conversation someone pointed a camera at.
+      <% end %>
+    </p>
+    <% if editions.any? %>
+      <ul class="edition-links" aria-label="Jump to an edition">
+        <% editions.each do |gallery| %>
+          <li><a class="edition-link" href="<%= gallery_path(gallery) %>" style="--accent: <%= gallery_accent(gallery) %>"><%= gallery.held_on.year %></a></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
 
-<ul class="gallery-index" data-controller="blurhash">
-  <% @galleries.each_with_index do |gallery, index| %>
+  <% if @deck.any? %>
+    <%#
+      A pile of polaroids being dealt: every few seconds the top photo slides
+      off and tucks under the pile. The deck controller does the dealing; the
+      server lays the pile out, so without JS it is a still, tossed stack.
+    %>
+    <div class="deck" data-controller="deck" role="region" aria-roledescription="carousel" aria-label="Photos from every edition">
+      <% [ [ 4, 8, "#FF3A36", 30 ], [ 90, 14, "#012B7F", 18 ], [ 10, 88, "#FFC53D", 24 ], [ 86, 80, "#FF3A36", 14 ], [ 50, 2, "#FFC53D", 10 ] ].each_with_index do |(x, y, color, depth), i| %>
+        <span class="deck-pixel" aria-hidden="true" style="--x: <%= x %>%; --y: <%= y %>%; --color: <%= color %>; --depth: <%= depth %>; --i: <%= i %>"></span>
+      <% end %>
+      <ul class="deck__pile">
+        <% tilts = [ -4, 5, -7, 3, -2, 6, -5, 4 ] %>
+        <% offsets = [ [ 0, 0 ], [ 16, 10 ], [ -18, 6 ], [ 10, -12 ], [ -8, 14 ], [ 14, -6 ], [ -14, -10 ], [ 6, 12 ] ] %>
+        <% @deck.each_with_index do |photo, index| %>
+          <% gallery = photo.section.gallery %>
+          <li class="deck__card" data-deck-target="card" data-depth="<%= index %>"
+              aria-roledescription="slide" aria-label="<%= index + 1 %> of <%= @deck.size %>"
+              <%= "inert" unless index.zero? %>
+              style="--tilt: <%= tilts[index % tilts.size] %>deg; --x: <%= offsets[index % offsets.size][0] %>px; --y: <%= offsets[index % offsets.size][1] %>px; --accent: <%= gallery_accent(gallery) %>; --i: <%= index %>; --z: <%= @deck.size - index %>">
+            <a class="polaroid-card" href="<%= gallery_section_photo_path(gallery, photo.section, photo) %>">
+              <span class="polaroid-tape" aria-hidden="true"></span>
+              <span class="polaroid-photo" style="background: <%= photo.dominant_color %>">
+                <%= render "photos/picture",
+                           photo: photo,
+                           variants: %i[wall_avif wall_webp],
+                           sizes: "(min-width: 64rem) 20rem, 70vw",
+                           eager: index < 3,
+                           priority: index.zero?,
+                           alt: "#{photo.section.title}. #{gallery.title}" %>
+              </span>
+              <span class="polaroid-caption"><%= polaroid_caption(photo) %></span>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+      <button type="button" class="deck__toggle" hidden data-deck-target="toggle" data-action="deck#toggle">
+        <span class="deck__toggle-pause">Pause photos</span><span class="deck__toggle-play">Play photos</span>
+      </button>
+    </div>
+  <% end %>
+</section>
+</div>
+<div class="ribbon ribbon--divider" aria-hidden="true"></div>
+
+<ul class="gallery-index" id="galleries" data-controller="blurhash">
+  <% @galleries.each do |gallery| %>
     <li class="gallery-card" style="--accent: <%= gallery_accent(gallery) %>">
       <a href="<%= gallery_path(gallery) %>">
         <span class="gallery-card__cover"
@@ -21,16 +84,16 @@
                        photo: gallery.cover,
                        variants: %i[wall_avif wall_webp],
                        sizes: "(max-width: 700px) 100vw, 50vw",
-                       eager: index < 2,
-                       priority: index.zero?,
+                       eager: false,
                        alt: "#{gallery.title} cover photo" %>
           <% end %>
         </span>
         <span class="gallery-card__body">
+          <% if (label = edition_label(gallery)) %><span class="gallery-card__edition"><%= label %></span><% end %>
           <span class="gallery-card__title"><%= gallery.title %> <span class="gallery-card__arrow" aria-hidden="true">&rarr;</span></span>
           <span class="gallery-card__meta">
-            <% if gallery.held_on %><time datetime="<%= gallery.held_on.iso8601 %>"><%= gallery.held_on.strftime("%-d %B %Y") %></time> &middot; <% end %>
-            <%= pluralize gallery.photos_count, "photo" %>
+            <%= pluralize gallery.photos_count, "photo" %><% if gallery.held_on %>, taken
+            <time datetime="<%= gallery.held_on.iso8601 %>"><%= gallery.held_on.strftime("%-d %B %Y") %></time><% end %>
           </span>
         </span>
       </a>

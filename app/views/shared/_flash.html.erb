@@ -1,0 +1,21 @@
+<%#
+  Sign-in, sign-out and other flash messages, as cards in the page column
+  under the nav. Notices (yellow) announce politely and dismiss themselves;
+  alerts (red) interrupt and stay until closed. Only notice and alert are
+  shown: Devise sets nothing else, and an unknown key could carry anything.
+%>
+<% messages = flash.to_hash.slice("notice", "alert").select { |_, message| message.is_a?(String) && message.present? } %>
+<% if messages.any? %>
+  <div class="flash-stack">
+    <% messages.each do |type, message| %>
+      <div class="flash flash--<%= type %>"
+           role="<%= type == "alert" ? "alert" : "status" %>"
+           data-controller="flash"
+           <%= tag.attributes(data: { flash_dismiss_after_value: 6000 }) if type == "notice" %>>
+        <span class="flash__pixel" aria-hidden="true"></span>
+        <p class="flash__message"><%= message %></p>
+        <button type="button" class="flash__close" aria-label="Dismiss message" data-action="flash#dismiss">&times;</button>
+      </div>
+    <% end %>
+  </div>
+<% end %>

@@ -44,16 +44,16 @@
     <meta name="twitter:title" content="<%= page_title %>">
     <meta name="twitter:description" content="<%= meta_description %>">
 
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="icon" href="/favicon.ico" sizes="32x32">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="me" href="https://ruby.social/@friendlyrb">
     <link rel="sitemap" type="application/xml" href="/sitemap.xml">
     <%= structured_data %>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Work+Sans:wght@400;600;700&family=Sora:wght@600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Sora:wght@400..900&family=Work+Sans:wght@400..900&display=swap">
 
     <%# Named, not `:app`. That symbol globs every css under app/assets, which
         means Avo's 300KB build too -- and it dragged this stylesheet into
@@ -65,9 +65,8 @@
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <%= render "shared/header" %>
-    <% if notice %><p class="notice"><%= notice %></p><% end %>
-    <% if alert %><p class="alert"><%= alert %></p><% end %>
-    <main id="main">
+    <%= render "shared/flash" %>
+    <main id="main" tabindex="-1">
       <%= yield %>
     </main>
     <%= render "shared/footer" %>

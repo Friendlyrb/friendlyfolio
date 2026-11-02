@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+# Prepares the databases before the web server starts: creates and migrates
+# all three (primary, cache, queue), so a fresh storage volume comes up ready.
+#
+# db:prepare seeds a fresh database by itself; the explicit seed covers an
+# existing one, so setting ADMIN_EMAIL and ADMIN_PASSWORD later creates the
+# admin on the next boot. Seeding is idempotent, and without both variables it
+# only warns.
+if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  ./bin/rails db:prepare
+  if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ]; then
+    ./bin/rails db:seed
+  fi
+fi
+
+exec "${@}"
