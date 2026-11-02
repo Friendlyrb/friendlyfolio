@@ -65,8 +65,7 @@
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <%= render "shared/header" %>
-    <% if notice %><p class="notice"><%= notice %></p><% end %>
-    <% if alert %><p class="alert"><%= alert %></p><% end %>
+    <%= render "shared/flash" %>
     <main id="main" tabindex="-1">
       <%= yield %>
     </main>

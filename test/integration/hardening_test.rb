@@ -68,6 +68,15 @@ class HardeningTest < ActionDispatch::IntegrationTest
     assert_match(/private/, response.headers["Cache-Control"])
   end
 
+  test "public pages are cached by the CDN but revalidated by browsers" do
+    get root_path
+
+    assert_match(/\bpublic\b/, response.headers["Cache-Control"])
+    assert_match(/\bmax-age=0\b/, response.headers["Cache-Control"])
+    assert_match(/\bs-maxage=300\b/, response.headers["Cache-Control"])
+    assert response.headers["ETag"].present?, "revalidation needs an ETag to answer 304"
+  end
+
   test "public pages vary on Turbo-Frame and set no cookie" do
     gallery = create_gallery
     create_photo(gallery.sections.first)

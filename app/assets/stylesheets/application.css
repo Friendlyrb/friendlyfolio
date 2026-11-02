@@ -195,6 +195,40 @@ main:focus { outline: none; }
 .site-footer__bottom a { text-decoration: underline; }
 @media (min-width: 48rem) { .site-footer__bottom { flex-direction: row; align-items: center; justify-content: space-between; } }
 
+/* Flash messages: cards in the page column under the nav, with the nav's
+   pixel marker. Yellow for a notice, red for an alert. */
+.flash-stack {
+  max-width: 72rem; margin: 1rem auto 0; padding: 0 0.75rem;
+  display: grid; gap: 0.75rem;
+}
+@media (min-width: 40rem) { .flash-stack { padding: 0 1.5rem; } }
+@media (min-width: 75rem) { .flash-stack { padding: 0; } }
+.flash {
+  --flash-accent: var(--color-yellow);
+  display: flex; align-items: center; gap: 0.875rem;
+  padding: 0.25rem 0.25rem 0.25rem 1.25rem;
+  background: #fff; color: var(--color-brand);
+  border: 2px solid var(--color-brand); border-radius: 1rem;
+  box-shadow: 4px 4px 0 var(--flash-accent);
+  transition: opacity 200ms ease, translate 200ms ease;
+  animation: flash-in 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.flash--alert { --flash-accent: var(--color-red); }
+.flash.is-leaving { opacity: 0; translate: 0 -0.5rem; }
+.flash__pixel {
+  flex-shrink: 0; width: 10px; height: 10px;
+  background: var(--flash-accent); box-shadow: 2px 2px 0 var(--color-brand);
+}
+.flash__message { flex: 1; margin: 0.5rem 0; font-weight: 600; line-height: 1.4; }
+.flash__close {
+  flex-shrink: 0; display: grid; place-items: center; width: 2.75rem; height: 2.75rem;
+  border: 0; border-radius: 0.75rem; background: none; cursor: pointer;
+  color: rgb(1 43 127 / 0.7); font-size: 1.5rem; line-height: 1;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.flash__close:hover { color: var(--color-brand); background: rgb(1 43 127 / 0.06); }
+@keyframes flash-in { from { opacity: 0; translate: 0 -0.5rem; } }
+
 /* Back to top, as on friendlyrb.com. */
 .back-to-top {
   position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 40;

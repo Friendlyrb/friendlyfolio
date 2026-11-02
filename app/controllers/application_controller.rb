@@ -25,7 +25,11 @@ class ApplicationController < ActionController::Base
       response.headers["Cache-Control"] = "private, no-store"
     else
       request.session_options[:skip] = true
-      expires_in 5.minutes, public: true
+      # The CDN keeps a page for five minutes; browsers revalidate on every
+      # visit (a cheap 304 through the ETag). Letting browsers keep it too
+      # meant that after signing in or out, the redirect to a public page
+      # showed the copy from before -- no flash, and the old session's view.
+      expires_in 0, public: true, "s-maxage": 5.minutes.to_i
     end
   end
 end
