@@ -10,7 +10,7 @@
 </header>
 
 <ul class="gallery-index" data-controller="blurhash">
-  <% @galleries.each do |gallery| %>
+  <% @galleries.each_with_index do |gallery, index| %>
     <li class="gallery-card" style="--accent: <%= gallery_accent(gallery) %>">
       <a href="<%= gallery_path(gallery) %>">
         <span class="gallery-card__cover"
@@ -21,7 +21,8 @@
                        photo: gallery.cover,
                        variants: %i[wall_avif wall_webp],
                        sizes: "(max-width: 700px) 100vw, 50vw",
-                       eager: true,
+                       eager: index < 2,
+                       priority: index.zero?,
                        alt: "#{gallery.title} cover photo" %>
           <% end %>
         </span>
