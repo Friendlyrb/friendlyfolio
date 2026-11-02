@@ -24,14 +24,13 @@ export default class extends Controller {
 
   galleryChanged() {
     const sections = this.sectionsValue[this.galleryTarget.value] || []
-    const options = sections.map(
-      (s) => `<option value="${s.slug}">${s.title}</option>`
+    // Built as nodes, never HTML strings: titles and every name below come from
+    // outside this page, and dropped folder names come from whoever made them.
+    this.sectionTarget.replaceChildren(
+      ...sections.map((s) => new Option(s.title, s.slug)),
+      new Option("New section…", this.constructor.NEW_SECTION),
+      new Option("Use folder names", this.constructor.FROM_FOLDERS)
     )
-
-    options.push(`<option value="${this.constructor.NEW_SECTION}">New section…</option>`)
-    options.push(`<option value="${this.constructor.FROM_FOLDERS}">Use folder names</option>`)
-
-    this.sectionTarget.innerHTML = options.join("")
     // An empty gallery has nothing to pick, so start on the choice that makes
     // one rather than on a section that does not exist.
     this.sectionTarget.value = sections.length ? sections[0].slug : this.constructor.NEW_SECTION
@@ -113,9 +112,11 @@ export default class extends Controller {
     }
 
     const bySection = this.groupBySection(found)
-    this.planTarget.innerHTML = [...bySection.entries()]
-      .map(([section, files]) => `<li><strong>${section}</strong> — ${files.length} photo${files.length === 1 ? "" : "s"}</li>`)
-      .join("")
+    this.planTarget.replaceChildren(
+      ...[...bySection.entries()].map(([section, files]) =>
+        this.planItem(section, ` — ${files.length} photo${files.length === 1 ? "" : "s"}`)
+      )
+    )
 
     this.setStatus(`${found.length} photos ready.`)
     this.startTarget.hidden = false
@@ -214,10 +215,20 @@ export default class extends Controller {
     this.setStatus(`${parts.join(", ")}. Derivatives are baking in the background — the photos appear once they finish.`)
 
     if (rejected.length) {
-      this.planTarget.innerHTML +=
-        `<li class="importer__rejected"><strong>Rejected:</strong><br>${rejected.join("<br>")}</li>`
+      const item = this.planItem("Rejected:", "")
+      item.className = "importer__rejected"
+      for (const line of rejected) item.append(document.createElement("br"), line)
+      this.planTarget.append(item)
     }
     this.inputTarget.disabled = false
+  }
+
+  planItem(heading, text) {
+    const item = document.createElement("li")
+    const strong = document.createElement("strong")
+    strong.textContent = heading
+    item.append(strong, text)
+    return item
   }
 
   setStatus(text) {

@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
   # No :registerable on the model is what actually removes the sign-up routes;
   # this documents the intent and drops the password paths too.
-  devise_for :users, skip: [ :registrations, :passwords ]
+  devise_for :users, skip: [ :registrations, :passwords ], format: false,
+                     controllers: { sessions: "users/sessions" }
 
   # Inside an authenticate block rather than behind a before_action, so /avo is
   # not even routable when signed out.
@@ -19,9 +20,14 @@ Rails.application.routes.draw do
 
   root "galleries#index"
 
+  # Before the gallery scope: a slug route would otherwise read these as a
+  # gallery called "sitemap" or "robots" with a format.
+  get "sitemap.xml", to: "sitemaps#show", as: :sitemap, format: false, defaults: { format: :xml }
+  get "robots.txt", to: "sitemaps#robots", as: :robots, format: false, defaults: { format: :text }
+
   # Gallery slugs sit at the root, so they must not swallow the reserved
   # prefixes above. Everything below is scoped by that constraint.
-  RESERVED = %w[users avo up rails assets active_storage favicon icon].freeze
+  RESERVED = %w[users avo up rails assets active_storage favicon icon sitemap robots].freeze
 
   scope ":gallery_slug", constraints: { gallery_slug: /(?!(#{RESERVED.join("|")})\b)[a-z0-9][a-z0-9-]*/ } do
     get "/", to: "galleries#show", as: :gallery

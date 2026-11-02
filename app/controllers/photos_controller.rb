@@ -16,8 +16,14 @@ class PhotosController < ApplicationController
   # blob id alone and knows nothing about whether the gallery is published, so
   # linking it would make every unpublished photo fetchable by anyone holding
   # the URL.
+  #
+  # The Location is a relative path. redirect_to would prefix the request's
+  # host, which Rails takes from a client-sent X-Forwarded-Host, and this
+  # response is publicly cacheable -- one forged request could otherwise point
+  # every visitor's download at another site for the cache lifetime.
   def download
-    redirect_to variant_or_original, allow_other_host: false
+    response.headers["Location"] = variant_or_original
+    head :found
   end
 
   private
@@ -40,13 +46,13 @@ class PhotosController < ApplicationController
   # proxy controller pins a Puma thread for the whole transfer.
   def variant_or_original
     if params[:size] == "share"
-      rails_storage_redirect_url(
+      rails_storage_redirect_path(
         @photo.image.variant(:share_jpeg).processed,
         disposition: "attachment",
         filename: share_filename
       )
     else
-      rails_storage_redirect_url(
+      rails_storage_redirect_path(
         @photo.image,
         disposition: "attachment",
         filename: @photo.download_filename

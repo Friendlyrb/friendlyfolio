@@ -1,0 +1,11 @@
+<%# The nav card from friendlyrb.com, in its lifted state. Not sticky here: the
+    sections nav below the cover is the bar that follows you down a gallery. %>
+<header class="site-header">
+  <nav class="site-header__card" aria-label="Main">
+    <a class="site-header__home" href="<%= root_path %>">
+      <%= render "shared/logo", class: "site-header__logo" %>
+      <span>Friendly.rb <span class="site-header__photos">Photos</span></span>
+    </a>
+    <a class="site-header__link" href="https://friendlyrb.com">friendlyrb.com <span aria-hidden="true">&rarr;</span></a>
+  </nav>
+</header>

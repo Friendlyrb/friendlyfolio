@@ -46,7 +46,7 @@ class Avo::Resources::Photo < Avo::BaseResource
     field :has_location_data, as: :boolean, name: "Carries GPS EXIF", only_on: :display,
       label_help: "A photo that still has GPS in its EXIF refuses to bake, because the download " \
                   "button hands out the original verbatim. Strip it at the source: " \
-                  "<code>exiftool -gps:all= -overwrite_original &lt;dir&gt;</code>."
+                  "<code>exiftool -gps:all= -xmp:geotag= -overwrite_original &lt;dir&gt;</code>."
     field :width, as: :number, only_on: :display
     field :height, as: :number, only_on: :display
     field :dominant_color, as: :text, name: "Dominant color", only_on: :display, copyable: true,

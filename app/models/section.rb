@@ -14,10 +14,19 @@ class Section < ApplicationRecord
 
   def to_param = slug
 
-  def paginated? = photos.displayable.count > PER_PAGE
+  # One COUNT per request rather than one per caller: a section page asks for
+  # it from the controller, the pagination, and both lightbox edges.
+  def displayable_count = @displayable_count ||= photos.displayable.count
+
+  def reload(...)
+    @displayable_count = nil
+    super
+  end
+
+  def paginated? = displayable_count > PER_PAGE
 
   def page_count
-    [ (photos.displayable.count / PER_PAGE.to_f).ceil, 1 ].max
+    [ (displayable_count / PER_PAGE.to_f).ceil, 1 ].max
   end
 
   # A deep link has to resolve to the page holding its photo. Rendering page one

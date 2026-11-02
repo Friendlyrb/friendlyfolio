@@ -23,6 +23,16 @@ module ActiveSupport
       photo.reload
     end
 
+    # Minitest 6 dropped Object#stub with minitest/mock.
+    def stubbing(object, name, result)
+      singleton = object.singleton_class
+      original = object.method(name)
+      singleton.define_method(name) { |*args| result.respond_to?(:call) ? result.call(*args) : result }
+      yield
+    ensure
+      singleton.define_method(name, original)
+    end
+
     def create_gallery(slug: "2025", published: true, sections: { "day-1" => "Day 1" })
       gallery = Gallery.create!(slug: slug, title: "Friendly.rb #{slug}", held_on: Date.new(2025, 9, 10),
                                 published_at: (published ? Time.current : nil))

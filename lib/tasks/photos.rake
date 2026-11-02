@@ -8,7 +8,7 @@
 #      originals, so it is a deliberate act, not something ingest does behind
 #      your back (KTD11):
 #
-#        exiftool -gps:all= -overwrite_original_in_place -r ~/photos/2025/day-1
+#        exiftool -gps:all= -xmp:geotag= -overwrite_original_in_place -r ~/photos/2025/day-1
 #
 #      photos:ingest refuses to attach a file that still carries a GPS block,
 #      so skipping this step fails loudly rather than publishing attendee
@@ -216,9 +216,11 @@ module PhotoTasks
     checked = 0
     live_and_broken = 0
     complete_but_hidden = 0
+    located = []
 
     gallery_photos(gallery).find_each(batch_size: 200) do |photo|
       checked += 1
+      located << "#{photo.section.slug}/#{photo.download_filename} (##{photo.id})" if photo.has_location_data?
       problems = photo_problems(photo)
 
       if problems.any?
@@ -242,6 +244,13 @@ module PhotoTasks
     if live_and_broken.positive?
       say "  ALERT: #{live_and_broken} photo(s) are marked ready but are missing derivatives. " \
           "They are live, and a visitor will generate those variants inside a web request (KTD9)."
+    end
+
+    # First: a located photo is a privacy problem, not just an incomplete bake.
+    if located.any?
+      located.each { |label| say "  #{label}: carries GPS location data" }
+      die("#{located.size} photo(s) carry GPS location data and will not be shown. " \
+          "Strip it (exiftool -gps:all= -xmp:geotag=) and re-attach, or delete them.")
     end
 
     if rows.any?
@@ -316,6 +325,13 @@ module PhotoTasks
     photo = Photo.find(id)
     label = "#{photo.section.slug}/#{photo.download_filename}"
     return { baked: 0, present: 0, ready: false, label: "#{label} (no image attached)" } unless photo.image.attached?
+
+    # The same refusal as Photo#bake_variants!. This path writes
+    # derivatives_ready_at itself, so it has to check for itself too.
+    if photo.has_location_data?
+      photo.update_columns(derivatives_ready_at: nil, updated_at: Time.current) if photo.derivatives_ready_at
+      raise Photo::LocationDataPresent, "#{label} carries GPS location data; strip it at the source and re-attach"
+    end
 
     blob = photo.image.blob
     baked = 0
@@ -552,16 +568,16 @@ module PhotoTasks
       found
     end
 
-    # libvips exposes the EXIF GPS IFD as exif-ifd3-* fields. Header-only read,
-    # no pixels decoded. It covers the formats libvips parses EXIF for;
+    # The same check the app runs on every attachment: EXIF GPS fields, or GPS
+    # inside the XMP packet. Header-only read, no pixels decoded. A file libvips
+    # cannot open counts as tagged -- refusing it is safer than publishing it.
     # exiftool remains the authority, which is why it is the default.
     def vips_tagged(paths)
       require "vips"
       paths.select do |path|
-        Vips::Image.new_from_file(path.to_s, access: :sequential)
-             .get_fields.any? { |field| field.start_with?("exif-ifd3-GPS") }
+        ImageMetadata.located?(Vips::Image.new_from_file(path.to_s, access: :sequential))
       rescue Vips::Error
-        false
+        true
       end
     end
 
@@ -575,7 +591,7 @@ module PhotoTasks
         Install it, then strip the sources:
 
           brew install exiftool
-          exiftool -gps:all= -overwrite_original_in_place -r <directory>
+          exiftool -gps:all= -xmp:geotag= -overwrite_original_in_place -r <directory>
 
         If the sources were stripped elsewhere and exiftool is genuinely unavailable here, run
         again with the libvips fallback scanner. It reads the same EXIF GPS block and still
@@ -600,7 +616,7 @@ module PhotoTasks
 
       Nothing was imported. Strip them first (KTD11):
 
-        exiftool -gps:all= -overwrite_original_in_place -r #{dir}
+        exiftool -gps:all= -xmp:geotag= -overwrite_original_in_place -r #{dir}
     MESSAGE
   end
 end

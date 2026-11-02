@@ -39,6 +39,11 @@ Rails.application.configure do
   # Public pages are edge-cacheable and og:url echoes the request host, so an
   # unconstrained Host lets a forged one be cached under the real host's key.
   config.hosts << ENV["APP_HOST"] if ENV["APP_HOST"].present?
+
+  # Canonical, og:* and sitemap URLs are built on this host rather than on the
+  # request's Host or X-Forwarded-Host, which a client controls -- with the
+  # public hostname as the default, so a missing APP_HOST cannot reopen that.
+  config.x.canonical_url = "https://#{ENV.fetch("APP_HOST", "photos.friendlyrb.com")}"
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
   # Skip http-to-https redirect for the default health check endpoint.

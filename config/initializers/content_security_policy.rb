@@ -1,29 +1,32 @@
 # Be sure to restart your server when you modify this file.
 
-# Define an application-wide content security policy.
-# See the Securing Rails Applications Guide for more information:
-# https://guides.rubyonrails.org/security.html#content-security-policy-header
+# Scripts only from this origin (plus the nonce-tagged importmap tags), so a
+# string that ever reaches HTML unescaped -- the admin importer once put dropped
+# folder names into innerHTML -- cannot run as script.
+#
+# Images may come from the R2 public host (R2_PUBLIC_HOST, see
+# ApplicationHelper#photo_variant_url), and the admin importer PUTs direct
+# uploads straight to the R2 endpoint. Styles keep 'unsafe-inline': the wall
+# sizes every tile with a style attribute, and Turbo injects its progress bar.
+Rails.application.configure do
+  image_host = ENV["R2_PUBLIC_HOST"].presence
+  r2_endpoint = ("https://#{ENV["R2_ACCOUNT_ID"]}.r2.cloudflarestorage.com" if ENV["R2_ACCOUNT_ID"].present?)
 
-# Rails.application.configure do
-#   config.content_security_policy do |policy|
-#     policy.default_src :self, :https
-#     policy.font_src    :self, :https, :data
-#     policy.img_src     :self, :https, :data
-#     policy.object_src  :none
-#     policy.script_src  :self, :https
-#     policy.style_src   :self, :https
-#     # Specify URI for violation reports
-#     # policy.report_uri "/csp-violation-report-endpoint"
-#   end
-#
-#   # Generate session nonces for permitted importmap, inline scripts, and inline styles.
-#   config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
-#   config.content_security_policy_nonce_directives = %w(script-src style-src)
-#
-#   # Automatically add `nonce` to `javascript_tag`, `javascript_include_tag`, and `stylesheet_link_tag`
-#   # if the corresponding directives are specified in `content_security_policy_nonce_directives`.
-#   # config.content_security_policy_nonce_auto = true
-#
-#   # Report violations without enforcing the policy.
-#   # config.content_security_policy_report_only = true
-# end
+  config.content_security_policy do |policy|
+    policy.default_src     :self
+    policy.script_src      :self
+    policy.style_src       :self, :unsafe_inline, "https://fonts.googleapis.com"
+    policy.font_src        :self, :data, "https://fonts.gstatic.com"
+    policy.img_src         :self, :data, :blob, *[ image_host, r2_endpoint ].compact
+    policy.connect_src     :self, *[ r2_endpoint ].compact
+    policy.object_src      :none
+    policy.base_uri        :self
+    policy.form_action     :self
+    policy.frame_ancestors :self
+  end
+
+  # Random per response rather than the session id: public pages skip the
+  # session. A cached page and its header share one nonce, so caching is fine.
+  config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
+  config.content_security_policy_nonce_directives = %w[script-src]
+end

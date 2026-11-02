@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc><%= absolute_url(root_path) %></loc>
+  </url>
+<% @galleries.each do |gallery| %>
+  <url>
+    <loc><%= absolute_url(gallery_path(gallery)) %></loc>
+    <lastmod><%= gallery.updated_at.iso8601 %></lastmod>
+    <% if gallery.cover %>
+    <image:image><image:loc><%= absolute_url(photo_variant_url(gallery.cover, :share_jpeg)) %></image:loc></image:image>
+    <% end %>
+  </url>
+  <% gallery.sections.each do |section| %>
+    <%# One entry per page, because each page of a long section holds different
+        photos; the images listed are the JPEG tier, which every crawler reads. %>
+    <% (1..section.page_count).each do |page| %>
+      <% photos = section.photos_on(page).with_images.to_a %>
+      <% next if photos.empty? %>
+  <url>
+    <loc><%= absolute_url(gallery_section_path(gallery, section, page: (page if page > 1))) %></loc>
+    <lastmod><%= [ section.updated_at, *photos.map(&:updated_at) ].max.iso8601 %></lastmod>
+      <% photos.each do |photo| %>
+    <image:image><image:loc><%= absolute_url(photo_variant_url(photo, :share_jpeg)) %></image:loc></image:image>
+      <% end %>
+  </url>
+    <% end %>
+  <% end %>
+<% end %>
+</urlset>

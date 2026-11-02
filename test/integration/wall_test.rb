@@ -42,8 +42,12 @@ class WallTest < ActionDispatch::IntegrationTest
 
     get gallery_section_path(@gallery, @section)
 
-    assert_match(/fetchpriority="high"/, response.body)
-    assert_match(/loading="lazy"/, response.body)
+    tiles = response.body.scan(%r{<a class="tile".*?</a>}m)
+    assert_no_match(/loading="lazy"/, tiles.first)
+    assert_match(/loading="lazy"/, tiles.last)
+    # Only the cover is high priority: six high-priority tiles competed with it.
+    # (The lightbox's own <img> keeps the hint: when it opens, it is the page.)
+    assert_equal 1, response.body.split("<dialog").first.scan('fetchpriority="high"').size
   end
 
   test "photos without baked derivatives are not rendered" do

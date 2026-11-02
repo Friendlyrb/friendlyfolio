@@ -7,6 +7,12 @@
 module ImageMetadata
   # EXIF keys vips exposes for location data.
   GPS_FIELDS = /gps/i
+  # libvips hands XMP over as one opaque packet ("xmp-data") rather than as
+  # fields, so GPS written only there -- which `exiftool -gps:all=` leaves
+  # behind -- has to be found in the packet itself.
+  # Case-insensitive, and matched after dropping NUL bytes so a UTF-16 packet
+  # reads the same as a UTF-8 one.
+  XMP_GPS = /gps\s*(?:lat|long)/i
 
   module_function
 
@@ -31,10 +37,16 @@ module ImageMetadata
   # GPS losslessly needs exiftool, which is not a runtime dependency here -- so
   # this detects it and the model refuses to publish, rather than silently
   # re-encoding the photographer's file and losing quality.
+  #
+  # An image that cannot be inspected counts as located: an unknown verdict is
+  # not a clean one, and the cost of a false positive is a re-upload.
   def located?(image)
-    image.get_fields.grep(GPS_FIELDS).any?
+    fields = image.get_fields
+    return true if fields.grep(GPS_FIELDS).any?
+
+    fields.include?("xmp-data") && image.get("xmp-data").to_s.b.delete("\0").match?(XMP_GPS)
   rescue StandardError
-    false
+    true
   end
 
   # One vips call: shrink the whole image to a single pixel and read it. This

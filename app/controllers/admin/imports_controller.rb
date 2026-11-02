@@ -27,8 +27,9 @@ module Admin
         # Caught here rather than in the bake job, so the person who just
         # dropped the folder finds out now instead of discovering a stalled
         # photo later.
+        reason = photo.scanned? ? "GPS location data present" : "could not be checked for GPS location data; try again"
         photo.destroy
-        render json: { status: "rejected", reason: "GPS location data present" }, status: :unprocessable_content
+        render json: { status: "rejected", reason: reason }, status: :unprocessable_content
       else
         render json: { status: "imported", photo_id: photo.id, section: section.slug }
       end
@@ -45,7 +46,9 @@ module Admin
     # The dropped folder's own structure decides the sections: a file arriving
     # as "day-1/DSC_0001.jpg" lands in a "day-1" section, created if needed.
     def find_or_create_section
-      slug = params[:section_slug].presence&.parameterize || "photos"
+      # parameterize can return "" (a name in a non-Latin script), which would
+      # fail the slug validation instead of falling back.
+      slug = params[:section_slug].to_s.parameterize.presence || "photos"
       @gallery.sections.find_by(slug: slug) ||
         @gallery.sections.create!(
           slug: slug,

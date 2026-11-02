@@ -50,11 +50,6 @@
             id: p.id,
             avif: photo_variant_url(p, :zoom_avif),
             webp: photo_variant_url(p, :zoom_webp),
-            large: photo_variant_url(p, :large_webp),
-            url: gallery_section_photo_path(gallery, section, p),
-            download: download_gallery_section_photo_path(gallery, section, p),
-            share: download_gallery_section_photo_path(gallery, section, p, size: "share"),
-            alt: "#{section.title}. #{gallery.title}",
             r: p.aspect_ratio,
             color: p.dominant_color,
             blurhash: p.blurhash

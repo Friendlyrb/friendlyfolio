@@ -1,8 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="utf-8">
     <title><%= page_title %></title>
+    <meta name="description" content="<%= meta_description %>">
+    <meta name="robots" content="<%= meta_robots %>">
+    <link rel="canonical" href="<%= canonical_url %>">
+    <meta name="theme-color" content="#012B7F">
+    <meta name="color-scheme" content="light">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%# Only for the admin. On public pages the session is skipped so the
         response stays edge-cacheable, and a token a skipped session can never
@@ -17,25 +24,36 @@
 
     <%# Social cards. og:image is the JPEG variant deliberately: unfurlers on
         Slack, LinkedIn and X do not decode AVIF. %>
-    <meta property="og:title" content="<%= content_for(:og_title) || content_for(:title) || "Friendly.rb photos" %>">
-    <meta property="og:description" content="<%= content_for(:og_description) || "Conference photos from Friendly.rb." %>">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="<%= request.original_url %>">
-    <% if content_for?(:og_image) %>
-      <%# Absolute: an unfurler has no base to resolve a path against. %>
-      <% og_image = URI.join(request.base_url, content_for(:og_image)).to_s %>
-      <meta property="og:image" content="<%= og_image %>">
-      <meta name="twitter:image" content="<%= og_image %>">
+    <meta property="og:site_name" content="<%= SeoHelper::SITE_NAME %>">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:title" content="<%= page_title %>">
+    <meta property="og:description" content="<%= meta_description %>">
+    <meta property="og:url" content="<%= canonical_url %>">
+    <% if (image = og_image) %>
+      <meta property="og:image" content="<%= image[:url] %>">
+      <% if image[:width] && image[:height] %>
+        <meta property="og:image:width" content="<%= image[:width] %>">
+        <meta property="og:image:height" content="<%= image[:height] %>">
+      <% end %>
+      <% if image[:alt] %><meta property="og:image:alt" content="<%= image[:alt] %>"><% end %>
+      <meta name="twitter:image" content="<%= image[:url] %>">
     <% end %>
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@friendlyrb">
+    <meta name="twitter:title" content="<%= page_title %>">
+    <meta name="twitter:description" content="<%= meta_description %>">
 
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="me" href="https://ruby.social/@friendlyrb">
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+    <%= structured_data %>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600&family=Sora:wght@600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Work+Sans:wght@400;600;700&family=Sora:wght@600;700;800&display=swap">
 
     <%# Named, not `:app`. That symbol globs every css under app/assets, which
         means Avo's 300KB build too -- and it dragged this stylesheet into
@@ -45,8 +63,13 @@
   </head>
 
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <%= render "shared/header" %>
     <% if notice %><p class="notice"><%= notice %></p><% end %>
     <% if alert %><p class="alert"><%= alert %></p><% end %>
-    <%= yield %>
+    <main id="main">
+      <%= yield %>
+    </main>
+    <%= render "shared/footer" %>
   </body>
 </html>

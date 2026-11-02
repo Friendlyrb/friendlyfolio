@@ -13,5 +13,7 @@
        height="<%= photo.height %>"
        alt="<%= alt %>"
        decoding="async"
-       <%= eager ? "fetchpriority=\"high\"".html_safe : "loading=\"lazy\"".html_safe %>>
+       <%# eager: not lazy. priority: the page's largest image, fetched first --
+           one per page, or the hint competes with itself. %>
+       <% if local_assigns[:priority] %>fetchpriority="high"<% elsif !eager %>loading="lazy"<% end %>>
 </picture>

@@ -78,7 +78,7 @@
       <p>
         Either way, strip GPS first — photos carrying location data are
         rejected, because the download button hands out the original file:
-        <code>exiftool -gps:all= -overwrite_original_in_place -r &lt;dir&gt;</code>
+        <code>exiftool -gps:all= -xmp:geotag= -overwrite_original_in_place -r &lt;dir&gt;</code>
       </p>
     </details>
   <% end %>

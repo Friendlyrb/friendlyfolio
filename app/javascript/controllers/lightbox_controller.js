@@ -6,7 +6,9 @@ import { decode } from "blurhash"
 // -- is deliberately not reimplemented here.
 export default class extends Controller {
   static targets = ["dialog", "figure", "placeholder", "image", "avif", "counter", "download", "share2048", "tile", "manifest"]
-  static values = { sectionPath: String }
+  // Every photo's own URLs and its alt text follow from these, so the manifest
+  // does not repeat them 300 times.
+  static values = { sectionPath: String, photoBase: String, alt: String }
 
   connect() {
     const data = JSON.parse(this.manifestTarget.textContent)
@@ -65,13 +67,13 @@ export default class extends Controller {
     this.paintPlaceholder(photo)
     this.figureTarget.classList.add("is-loading")
     this.imageTarget.decode().then(() => this.figureTarget.classList.remove("is-loading"), () => {})
-    this.imageTarget.alt = photo.alt
-    this.downloadTarget.href = photo.download
-    this.share2048Target.href = photo.share
+    this.imageTarget.alt = this.altValue
+    this.downloadTarget.href = `${this.urlFor(photo)}/download`
+    this.share2048Target.href = `${this.urlFor(photo)}/download?size=share`
     this.counterTarget.textContent = `${i + 1} / ${this.photos.length}`
     this.dialogTarget.setAttribute("aria-label", `Photo ${i + 1} of ${this.photos.length}`)
 
-    if (push) history.pushState({ photo: photo.id }, "", photo.url)
+    if (push) history.pushState({ photo: photo.id }, "", this.urlFor(photo))
     if (!this.dialogTarget.open) this.dialogTarget.showModal()
 
     this.preload(i + 1)
@@ -97,9 +99,25 @@ export default class extends Controller {
     canvas.getContext("2d").putImageData(new ImageData(decode(photo.blurhash, w, h), w, h), 0, 0)
   }
 
+  urlFor(photo) {
+    return `${this.photoBaseValue}${photo.id}`
+  }
+
+  // Warms the AVIF, which is what the <picture> will actually show. Preloading
+  // the WebP fetched a second image per neighbour that was never displayed.
+  // type="image/avif" makes a browser without AVIF skip the hint entirely.
   preload(i) {
     const photo = this.photos[i]
-    if (photo) new Image().src = photo.webp
+    if (!photo || this.preloaded?.has(photo.id)) return
+
+    this.preloaded ||= new Set()
+    this.preloaded.add(photo.id)
+    const link = document.createElement("link")
+    link.rel = "preload"
+    link.as = "image"
+    link.type = "image/avif"
+    link.href = photo.avif
+    document.head.append(link)
   }
 
   next() { this.step(1) }
