@@ -34,6 +34,12 @@
   --accent: var(--color-red);
 }
 
+/* In-page anchors clear the sticky nav and, as on friendlyrb.com, scroll
+   smoothly. On the root, not on each target: Turbo's same-page anchor
+   scroll ignored the sections' own scroll-margin. */
+html { scroll-padding-top: 4.5rem; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
 body {
   font-family: var(--font-body);
   background: #fff;
@@ -392,7 +398,7 @@ main:focus { outline: none; }
 
 /* 74rem is the 72rem column plus its gutters, so the wall lines up with the
    cover and the nav above it. */
-.gallery-section { max-width: 74rem; margin: 0 auto; padding: 2.5rem 1rem 0; scroll-margin-top: 5.5rem; }
+.gallery-section { max-width: 74rem; margin: 0 auto; padding: 2.5rem 1rem 0; }
 .gallery-section h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin: 0 0 0.25rem; }
 .section-description { color: var(--color-muted); margin: 0 0 1.25rem; max-width: 42rem; }
 

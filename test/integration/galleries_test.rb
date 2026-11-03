@@ -186,6 +186,10 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     nav = response.body[%r{<nav class="site-nav".*?</nav>}m]
     assert_match(/href="#section-day-1"\s+data-section-link/, nav)
     assert_match(/id="section-day-2"/, response.body, "each anchor needs its target")
+    # Turbo 8 turns a same-page anchor into a full visit, which re-rendered the
+    # page mid-scroll and landed short of the section; the browser must have it.
+    assert_equal nav.scan("data-section-link").size, nav.scan(/data-section-link data-turbo="false"/).size
+    assert_match(/<a class="skip-link" href="#main" data-turbo="false">/, response.body)
   end
 
   test "the footer carries the conference site's links and credits" do
