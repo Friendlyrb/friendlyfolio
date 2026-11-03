@@ -536,7 +536,8 @@ main:focus { outline: none; }
 @media (min-width: 48rem) { .trail-stop__year { height: 5rem; } }
 .pixel-year.pixel-static .pixel-bit { animation: none; }
 .trail-stop__title { margin: 1.25rem 0 0; font-size: clamp(1.75rem, 3.5vw, 2.25rem); line-height: 1.15; }
-.trail-stop__title a { color: inherit; text-decoration: none; }
+/* A 44px target: the card used to be the link, so this one must be easy to hit. */
+.trail-stop__title a { display: inline-flex; align-items: center; min-height: 2.75rem; color: inherit; text-decoration: none; }
 .trail-stop__title a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 6px; }
 
 /* The numbers, inked like passport stamps (friendlyrb.com's .stamp). */
@@ -576,9 +577,10 @@ main:focus { outline: none; }
 /* Three taped snapshots: the cover in front with its caption, two behind. */
 .trail-snapshots { position: relative; display: block; width: 100%; max-width: 32rem; aspect-ratio: 5 / 4; margin: 0 auto; }
 .trail-snapshot { position: absolute; }
-.trail-snapshot--0 { left: 3%; top: 6%; width: 56%; z-index: 2; }
+/* The cover stays in front, caption and all; hover brings any one forward. */
+.trail-snapshot--0 { left: 3%; top: 6%; width: 56%; z-index: 3; }
 .trail-snapshot--1 { right: 2%; top: 0; width: 44%; z-index: 1; }
-.trail-snapshot--2 { right: 8%; bottom: 2%; width: 44%; z-index: 3; }
+.trail-snapshot--2 { right: 8%; bottom: 2%; width: 44%; z-index: 2; }
 .trail-snapshot:hover { z-index: 10; }
 .trail-snapshot__frame {
   position: relative; display: block; padding: 0.5rem 0.5rem 1.25rem; background: #fff; rotate: var(--tilt);
