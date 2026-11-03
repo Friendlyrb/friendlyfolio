@@ -4,6 +4,10 @@ module EditionHelper
   # The 5x7 digit font friendlyrb.com draws its years in (_data/pixel_digits.json there).
   PIXEL_DIGITS = JSON.parse(File.read(Rails.root.join("config/pixel_digits.json"))).freeze
   ORDINALS = %w[one two three four five six seven eight nine].freeze
+  NUMBERS = %w[zero one two three four five six seven eight nine ten].freeze
+
+  # Small counts read as words in headings ("Three editions"); larger ones as digits.
+  def number_in_words(count) = NUMBERS[count] || count.to_s
 
   # Editions count from the first year friendlyrb.com has a colour for, so a
   # gallery that is not an edition (a meetup, a workshop) gets no label.

@@ -23,7 +23,7 @@ class GalleriesTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     # The gallery list, not the page: the hero's photo deck is shuffled.
-    list = response.body[%r{<ul class="gallery-index".*?</ul>}m]
+    list = response.body[%r{<ol class="gallery-index".*?</ol>}m]
     assert_match new.title, list
     assert_no_match(/Friendly\.rb draft/, response.body)
     assert_operator list.index(new.title), :<, list.index(old.title)
@@ -154,7 +154,7 @@ class GalleriesTest < ActionDispatch::IntegrationTest
 
     get root_path
 
-    assert_match(/class="gallery-card__cover".*?data-blurhash="[^"]+"/m, response.body)
+    assert_match(/class="trail-snapshot__photo"[^>]*data-blurhash="[^"]+"/m, response.body)
   end
 
   test "the index links out to the conference site" do
@@ -190,6 +190,21 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     # page mid-scroll and landed short of the section; the browser must have it.
     assert_equal nav.scan("data-section-link").size, nav.scan(/data-section-link data-turbo="false"/).size
     assert_match(/<a class="skip-link" href="#main" data-turbo="false">/, response.body)
+  end
+
+  test "the index walks the editions as a trail, linking each one and its sections" do
+    gallery = create_gallery(sections: { "day-1" => "Day 1", "day-2" => "Day 2" })
+    gallery.sections.each { |s| create_photo(s) }
+
+    get root_path
+
+    stop = response.body[%r{<li class="trail-stop.*?</li>\s*</ol>}m]
+    assert_match(/<h2 id="editions-heading">One edition<\/h2>/, response.body)
+    assert_match(%r{<h3 class="trail-stop__title">\s*<a href="#{gallery_path(gallery)}"><span class="visually-hidden">#{gallery.title}, </span>Edition three</a>}, stop)
+    assert_match(/<strong>2<\/strong> photos/, stop, "the photo count is stamped")
+    gallery.sections.each { |s| assert_includes stop, %(href="#{gallery_section_path(gallery, s)}") }
+    assert_match(/See all 2 photos/, stop)
+    assert_match(/class="trail-snapshots"[^>]*tabindex="-1" aria-hidden="true"/, stop, "the duplicate link stays out of the tab order")
   end
 
   test "the footer carries the conference site's links and credits" do

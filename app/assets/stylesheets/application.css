@@ -48,7 +48,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, .gallery-card__title { font-family: var(--font-heading); font-weight: 700; color: var(--color-brand); letter-spacing: -0.02em; }
+h1, h2, h3 { font-family: var(--font-heading); font-weight: 700; color: var(--color-brand); letter-spacing: -0.02em; }
 
 :focus-visible { outline: 3px solid var(--color-red); outline-offset: 2px; }
 
@@ -489,24 +489,126 @@ main:focus { outline: none; }
   50% { transform: translateY(-14px) rotate(12deg); }
 }
 
-.gallery-index { list-style: none; display: grid; gap: 2.5rem; padding: 3.5rem 1.5rem 1rem; margin: 0 auto; max-width: 72rem;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
-.gallery-card a {
-  text-decoration: none; color: inherit; display: block; height: 100%;
-  background: #fff; border: 2px solid var(--color-brand); border-radius: 1.5rem; overflow: hidden;
-  box-shadow: 6px 6px 0 var(--accent);
+/*
+  The editions trail, after friendlyrb.com's homepage: dotted paper, a dashed
+  path, a stop per edition in its colour, the year in pixels, its numbers as
+  inked stamps, and taped snapshots that straighten when pointed at. Nothing
+  here moves on its own; the hero's deck is the page's one animated moment.
+*/
+.trail-band {
+  padding: 4.5rem 1.25rem 5rem;
+  background-color: #f9fafb;
+  background-image: radial-gradient(rgb(1 43 127 / 0.07) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+.trail-header { max-width: 40rem; margin: 0 auto 4rem; text-align: center; }
+.trail-header h2 { margin: 0; font-size: clamp(2.25rem, 5vw, 3rem); line-height: 1.1; }
+.trail-header p { margin: 0.75rem 0 0; font-size: 1.125rem; color: var(--color-muted); }
+
+.gallery-index {
+  position: relative; max-width: 72rem; margin: 0 auto; padding: 0; list-style: none;
+  display: grid; gap: 5rem;
+}
+/* The dashed path, down the left edge on phones and the middle from 48rem. */
+.gallery-index::before {
+  content: ""; position: absolute; top: 0.5rem; bottom: -4.5rem; left: 10px; width: 3px;
+  background: repeating-linear-gradient(to bottom, var(--color-brand) 0 10px, transparent 10px 20px);
+}
+.trail-stop { position: relative; display: grid; gap: 2.5rem; align-items: center; padding-left: 3rem; }
+.trail-stop__marker {
+  position: absolute; left: 0; top: 0.75rem; width: 1.5rem; height: 1.5rem;
+  background: var(--accent); border: 3px solid var(--color-brand); box-shadow: 0 0 0 8px #f9fafb;
+}
+@media (min-width: 48rem) {
+  .gallery-index { gap: 7rem; }
+  .gallery-index::before { left: 50%; translate: -50% 0; }
+  .trail-stop { grid-template-columns: 1fr 1fr; gap: 7rem; padding-left: 0; }
+  .trail-stop__marker { left: 50%; top: 50%; translate: -50% -50%; }
+  /* Alternate sides: text on the right, then on the left, aligned to the path. */
+  .trail-stop--text-right .trail-stop__text { order: 2; }
+  .trail-stop--text-left .trail-stop__text { text-align: right; }
+  .trail-stop--text-left .trail-stop__year { margin-left: auto; }
+  .trail-stop--text-left .trail-stamps,
+  .trail-stop--text-left .trail-sections { justify-content: flex-end; }
+}
+
+.trail-stop__year { display: block; width: auto; height: 3.5rem; }
+@media (min-width: 48rem) { .trail-stop__year { height: 5rem; } }
+.pixel-year.pixel-static .pixel-bit { animation: none; }
+.trail-stop__title { margin: 1.25rem 0 0; font-size: clamp(1.75rem, 3.5vw, 2.25rem); line-height: 1.15; }
+/* A 44px target: the card used to be the link, so this one must be easy to hit. */
+.trail-stop__title a { display: inline-flex; align-items: center; min-height: 2.75rem; color: inherit; text-decoration: none; }
+.trail-stop__title a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 6px; }
+
+/* The numbers, inked like passport stamps (friendlyrb.com's .stamp). */
+.trail-stamps { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0 0; padding: 0; list-style: none; }
+.stamp { padding: 2px; color: var(--color-brand); background: rgb(255 255 255 / 0.7); border: 2px solid currentColor; border-radius: 0.5rem; rotate: -2deg; }
+.stamp--red { color: var(--color-red-text); rotate: 1.5deg; }
+.stamp-inner {
+  display: flex; align-items: baseline; gap: 0.375rem; padding: 0.3rem 0.75rem;
+  border: 1px dashed currentColor; border-radius: 0.3rem;
+  font-size: 0.875rem; font-weight: 600; line-height: 1.2;
+}
+.stamp-inner strong { font-family: var(--font-heading); font-size: 1.25rem; }
+
+/* One link per section, each with its photo count. */
+.trail-sections { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.trail-section {
+  display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 0.5rem 0 1rem;
+  background: #fff; border: 2px solid var(--color-brand); border-radius: 999px;
+  font-weight: 600; font-size: 0.9375rem; color: var(--color-brand); text-decoration: none;
   transition: translate 200ms ease, box-shadow 200ms ease;
 }
-.gallery-card a:hover { translate: -3px -3px; box-shadow: 9px 9px 0 var(--accent); }
-.gallery-card__cover { display: block; aspect-ratio: 3/2; overflow: hidden; border-bottom: 2px solid var(--color-brand); }
-.gallery-card__cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: scale 400ms cubic-bezier(0.22, 1, 0.36, 1); }
-.gallery-card a:hover .gallery-card__cover img { scale: 1.04; }
-.gallery-card__body { display: block; padding: 1.25rem 1.5rem 1.5rem; }
-.gallery-card__edition { display: block; margin-bottom: 0.25rem; font-family: var(--font-handwriting); font-size: 1.6rem; line-height: 1; color: var(--color-red-text); }
-.gallery-card__title { display: flex; justify-content: space-between; gap: 1rem; font-size: 1.5rem; font-weight: 700; }
-.gallery-card__arrow { color: var(--color-red-text); transition: translate 200ms ease; }
-.gallery-card a:hover .gallery-card__arrow { translate: 4px 0; }
-.gallery-card__meta { display: block; margin-top: 0.35rem; color: var(--color-muted); font-size: 0.95rem; }
+.trail-section:hover { translate: -2px -2px; box-shadow: 3px 3px 0 var(--accent); }
+.trail-section__count {
+  display: inline-grid; place-items: center; min-width: 1.75rem; height: 1.75rem; padding: 0 0.4rem;
+  border-radius: 999px; background: rgb(1 43 127 / 0.08); font-size: 0.8125rem;
+}
+
+/* friendlyrb.com's "Explore" button: navy on a ledge in the edition's colour. */
+.trail-cta {
+  display: inline-flex; align-items: center; min-height: 3rem; margin-top: 1.75rem; padding: 0 1.75rem;
+  background: var(--color-brand); border-radius: 999px; color: #fff; font-weight: 700; text-decoration: none;
+  box-shadow: 0 4px 0 var(--accent); transition: translate 150ms ease, box-shadow 150ms ease;
+}
+.trail-cta:hover { translate: 0 -2px; box-shadow: 0 6px 0 var(--accent); }
+.trail-cta:active { translate: 0 4px; box-shadow: none; }
+
+/* Three taped snapshots: the cover in front with its caption, two behind. */
+.trail-snapshots { position: relative; display: block; width: 100%; max-width: 32rem; aspect-ratio: 5 / 4; margin: 0 auto; }
+.trail-snapshot { position: absolute; }
+/* The cover stays in front, caption and all; hover brings any one forward. */
+.trail-snapshot--0 { left: 3%; top: 6%; width: 56%; z-index: 3; }
+.trail-snapshot--1 { right: 2%; top: 0; width: 44%; z-index: 1; }
+.trail-snapshot--2 { right: 8%; bottom: 2%; width: 44%; z-index: 2; }
+.trail-snapshot:hover { z-index: 10; }
+.trail-snapshot__frame {
+  position: relative; display: block; padding: 0.5rem 0.5rem 1.25rem; background: #fff; rotate: var(--tilt);
+  box-shadow: 0 1px 2px rgb(1 43 127 / 0.12), 0 10px 24px -6px rgb(1 43 127 / 0.28);
+  transition: rotate 300ms cubic-bezier(0.34, 1.56, 0.64, 1), translate 300ms ease;
+}
+.trail-snapshot--0 .trail-snapshot__frame { padding-bottom: 0; }
+.trail-snapshot:hover .trail-snapshot__frame { rotate: 0deg; translate: 0 -4px; }
+.trail-snapshot__photo { display: block; aspect-ratio: 1; overflow: hidden; }
+.trail-snapshot__photo picture, .trail-snapshot__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.trail-snapshot__caption {
+  display: block; padding: 0.5rem 0.25rem 0.6rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: var(--font-handwriting); font-size: 1.5rem; line-height: 1; color: var(--color-brand);
+}
+
+/* The end of the trail, as on friendlyrb.com. */
+.trail-end { position: relative; display: flex; align-items: center; gap: 1rem; max-width: 72rem; margin: 5rem auto 0; padding-left: 0; }
+.trail-end__badge {
+  display: grid; place-items: center; flex-shrink: 0; width: 3.5rem; height: 3.5rem; margin-left: -1rem;
+  background: #fff; border: 2px solid var(--color-brand); border-radius: 50%; box-shadow: 0 0 0 8px #f9fafb;
+}
+.trail-end__logo { width: 2rem; height: 1.5rem; }
+.trail-end p { margin: 0; font-family: var(--font-handwriting); font-size: 1.875rem; line-height: 1; color: var(--color-red-text); rotate: -2deg; }
+@media (min-width: 48rem) {
+  .gallery-index::before { bottom: -7rem; }
+  .trail-end { flex-direction: column; margin-top: 7rem; text-align: center; }
+  .trail-end__badge { margin-left: 0; }
+}
 .credit { text-align: center; color: var(--color-muted); padding: 3rem 1rem 0; }
 .credit::before { content: "Snapped with love"; display: block; font-family: var(--font-handwriting); font-size: 1.75rem; color: var(--color-red-text); }
 .empty { text-align: center; color: var(--color-muted); padding: 3rem; }

@@ -1,0 +1,86 @@
+<%#
+  The editions as friendlyrb.com's homepage walks them: a dashed trail with a
+  stop per edition, its year drawn in pixels, its numbers inked like passport
+  stamps, and three snapshots taped beside it. Stops alternate sides from
+  48rem; below that the trail runs down the left edge.
+
+  The snapshot cluster repeats the stop's main link, so it is hidden from
+  assistive tech and the tab order; the title and the button carry the link.
+%>
+<section class="trail-band" aria-labelledby="editions-heading">
+  <header class="trail-header">
+    <h2 id="editions-heading"><%= number_in_words(galleries.size).capitalize %> <%= galleries.size == 1 ? "edition" : "editions" %></h2>
+    <p>Pick a year to see its photos, day by day.</p>
+  </header>
+
+  <ol class="gallery-index" id="galleries" data-controller="blurhash">
+    <% galleries.each_with_index do |gallery, index| %>
+      <% snapshots = hero_polaroids(gallery) %>
+      <% year = gallery.held_on&.year %>
+      <li class="trail-stop <%= index.even? ? "trail-stop--text-right" : "trail-stop--text-left" %>" style="--accent: <%= gallery_accent(gallery) %>">
+        <span class="trail-stop__marker" aria-hidden="true"></span>
+
+        <div class="trail-stop__text">
+          <% if year %><%= pixel_year(year, class_name: "trail-stop__year pixel-static") %><% end %>
+          <%# As on friendlyrb.com: the year in pixels, then "Edition three" -- the
+              title would only say the year again. Screen readers still hear
+              the gallery's name in the link. %>
+          <% label = edition_label(gallery) %>
+          <h3 class="trail-stop__title">
+            <a href="<%= gallery_path(gallery) %>"><% if label %><span class="visually-hidden"><%= gallery.title %>, </span><%= label %><% else %><%= gallery.title %><% end %></a>
+          </h3>
+
+          <ul class="trail-stamps" aria-label="<%= gallery.title %> in numbers">
+            <li class="stamp"><span class="stamp-inner"><strong><%= number_with_delimiter(gallery.photos_count) %></strong> <%= gallery.photos_count == 1 ? "photo" : "photos" %></span></li>
+            <% if gallery.held_on %>
+              <li class="stamp stamp--red"><span class="stamp-inner"><time datetime="<%= gallery.held_on.iso8601 %>"><%= gallery.held_on.strftime("%-d %B") %></time></span></li>
+            <% end %>
+          </ul>
+
+          <% if gallery.sections.size > 1 %>
+            <ul class="trail-sections" aria-label="Sections of <%= gallery.title %>">
+              <% gallery.sections.each do |section| %>
+                <li>
+                  <a class="trail-section" href="<%= gallery_section_path(gallery, section) %>">
+                    <%= section.title %><span class="trail-section__count"><%= section.photos_count %><span class="visually-hidden"> photos</span></span>
+                  </a>
+                </li>
+              <% end %>
+            </ul>
+          <% end %>
+
+          <a class="trail-cta" href="<%= gallery_path(gallery) %>">See all <%= number_with_delimiter(gallery.photos_count) %> photos</a>
+        </div>
+
+        <% if snapshots.any? %>
+          <a class="trail-snapshots" href="<%= gallery_path(gallery) %>" tabindex="-1" aria-hidden="true">
+            <% snapshots.each_with_index do |photo, slot| %>
+              <span class="trail-snapshot trail-snapshot--<%= slot %>" style="--tilt: <%= [ -4, 6, -2 ][slot] %>deg">
+                <span class="trail-snapshot__frame">
+                  <% if slot.zero? %><span class="polaroid-tape"></span><% end %>
+                  <span class="trail-snapshot__photo" style="background: <%= photo.dominant_color %>"
+                        <%= tag.attributes(data: { blurhash: photo.blurhash }) if photo.blurhash.present? %>>
+                    <%= render "photos/picture",
+                               photo: photo,
+                               variants: %i[wall_avif wall_webp],
+                               sizes: "(min-width: 48rem) 18rem, 55vw",
+                               eager: false,
+                               alt: "" %>
+                  </span>
+                  <% if slot.zero? %><span class="trail-snapshot__caption"><%= polaroid_caption(photo) %></span><% end %>
+                </span>
+              </span>
+            <% end %>
+          </a>
+        <% end %>
+      </li>
+    <% end %>
+  </ol>
+
+  <% if galleries.any? %>
+    <div class="trail-end">
+      <span class="trail-end__badge" aria-hidden="true"><%= render "shared/logo", class: "trail-end__logo" %></span>
+      <p>Thanks for being part of it</p>
+    </div>
+  <% end %>
+</section>

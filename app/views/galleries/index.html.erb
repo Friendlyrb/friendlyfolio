@@ -72,34 +72,7 @@
 </div>
 <div class="ribbon ribbon--divider" aria-hidden="true"></div>
 
-<ul class="gallery-index" id="galleries" data-controller="blurhash">
-  <% @galleries.each do |gallery| %>
-    <li class="gallery-card" style="--accent: <%= gallery_accent(gallery) %>">
-      <a href="<%= gallery_path(gallery) %>">
-        <span class="gallery-card__cover"
-              style="background: <%= gallery.cover&.dominant_color || "#012B7F" %>"
-              <%= tag.attributes(data: { blurhash: gallery.cover&.blurhash }) if gallery.cover&.blurhash.present? %>>
-          <% if gallery.cover %>
-            <%= render "photos/picture",
-                       photo: gallery.cover,
-                       variants: %i[wall_avif wall_webp],
-                       sizes: "(max-width: 700px) 100vw, 50vw",
-                       eager: false,
-                       alt: "#{gallery.title} cover photo" %>
-          <% end %>
-        </span>
-        <span class="gallery-card__body">
-          <% if (label = edition_label(gallery)) %><span class="gallery-card__edition"><%= label %></span><% end %>
-          <span class="gallery-card__title"><%= gallery.title %> <span class="gallery-card__arrow" aria-hidden="true">&rarr;</span></span>
-          <span class="gallery-card__meta">
-            <%= pluralize gallery.photos_count, "photo" %><% if gallery.held_on %>, taken
-            <time datetime="<%= gallery.held_on.iso8601 %>"><%= gallery.held_on.strftime("%-d %B %Y") %></time><% end %>
-          </span>
-        </span>
-      </a>
-    </li>
-  <% end %>
-</ul>
+<%= render "galleries/trail", galleries: @galleries if @galleries.any? %>
 
 <% if @galleries.empty? %>
   <p class="empty">No galleries published yet.</p>
