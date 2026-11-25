@@ -20,7 +20,7 @@
 
 | | |
 | --- | --- |
-| **Stack** | Rails 8.1 · Ruby 3.4.5 · SQLite · Solid Queue / Cache · Propshaft + importmap + Stimulus |
+| **Stack** | Rails 8.1 · Ruby 3.4.13 · SQLite · Solid Queue / Cache · Propshaft + importmap + Stimulus |
 | **Admin** | [Avo](https://avohq.io) at `/avo`, behind Devise |
 | **Images** | libvips: AVIF + WebP variants, a JPEG for sharing, blurhash placeholders |
 | **Storage** | Cloudflare R2, fronted by Cloudflare's CDN |
@@ -38,7 +38,7 @@
 
 ## Quick start
 
-You need **Ruby 3.4.5** and **libvips with AVIF support**:
+You need **Ruby 3.4.13** and **libvips with AVIF support**:
 
 | Platform | Install libvips |
 | --- | --- |
@@ -61,7 +61,7 @@ The admin is unreachable without signing in. It is mounted inside a Devise `auth
 
 ## Running with Docker
 
-The `Dockerfile` builds the production image: Ruby 3.4.5, libvips with the AV1 encoder, and assets precompiled. `compose.yaml` runs it as a web server plus a separate job worker that share one `storage` volume.
+The `Dockerfile` builds the production image: Ruby 3.4.13, libvips with the AV1 encoder, and assets precompiled. `compose.yaml` runs it as a web server plus a separate job worker that share one `storage` volume.
 
 ```bash
 echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" > .env
@@ -91,7 +91,7 @@ bin/rubocop        # lint
 bin/ci             # everything CI runs, in order (config/ci.rb)
 ```
 
-GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) runs on every pull request. Every job runs inside `ruby:3.4.5`:
+GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) runs on every pull request. Every job runs inside `ruby:3.4.13`:
 
 | Job | Runs |
 | --- | --- |

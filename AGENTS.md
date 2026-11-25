@@ -24,9 +24,9 @@ bin/ci                       # all of the above, as config/ci.rb lists them
 docker compose up --build    # the production image locally (see compose.yaml)
 ```
 
-- **Ruby 3.4.5** (`.ruby-version`). The macOS system Ruby is too old to run `bundle`. Without a modern Ruby, run commands in the `ruby:3.4.5` Docker image, as CI does.
+- **Ruby 3.4.13** (`.ruby-version`). The macOS system Ruby is too old to run `bundle`. Without a modern Ruby, run commands in the `ruby:3.4.13` Docker image, as CI does.
 - **libvips must be able to encode AVIF.** Half of each photo's variants are AVIF. A libvips without the AV1 encoder fails every baking test with `heifsave: Unsupported compression`. On Debian/Ubuntu, install `libvips42 libheif-plugin-aomenc libheif-plugin-dav1d`; on macOS, `brew install vips`.
-- **CI** (`.github/workflows/ci.yml`) runs RuboCop, the three audits, the suite plus seeds, and a production asset build on every PR, all inside `ruby:3.4.5`. A failing check blocks the merge.
+- **CI** (`.github/workflows/ci.yml`) runs RuboCop, the three audits, the suite plus seeds, and a production asset build on every PR, all inside `ruby:3.4.13`. A failing check blocks the merge.
 
 ## How it fits together
 

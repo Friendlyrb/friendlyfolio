@@ -12,7 +12,7 @@
 # it every AVIF variant fails with "heifsave: Unsupported compression", and
 # half of each photo's derivatives are AVIF.
 
-ARG RUBY_VERSION=3.4.5
+ARG RUBY_VERSION=3.4.13
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 WORKDIR /rails
